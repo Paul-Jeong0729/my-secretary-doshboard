@@ -1,531 +1,189 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>나의 비서 - Executive Cyber Dashboard</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; }
-        body { background-color: #0f172a; color: #f8fafc; padding: 20px; display: flex; flex-direction: column; gap: 20px; min-height: 100vh; }
-        header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #1e293b, #0f172a); padding: 15px 25px; border-radius: 12px; border: 1px solid #334155; }
-        header h1 { font-size: 1.2rem; color: #f59e0b; letter-spacing: 1px; }
-        .header-info { font-size: 0.9rem; color: #94a3b8; }
-        .dashboard-grid { display: grid; grid-template-columns: 340px 1fr 300px; gap: 20px; flex: 1; }
-        .card { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .card-title { font-size: 1.05rem; font-weight: bold; color: #f59e0b; border-bottom: 1px solid #334155; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .assistant-img-wrapper { position: relative; width: 100%; height: 320px; border-radius: 10px; overflow: hidden; border: 1px solid #334155; }
-        .assistant-img { width: 100%; height: 100%; object-fit: cover; }
-        .speech-bubble { background: rgba(15, 23, 42, 0.9); border: 1px solid #f59e0b; border-radius: 10px; padding: 15px; font-size: 0.88rem; line-height: 1.5; color: #e2e8f0; }
-        
-        .schedule-item { display: flex; justify-content: space-between; align-items: center; background-color: #0f172a; border-left: 4px solid #38bdf8; padding: 12px; border-radius: 0 8px 8px 0; margin-bottom: 8px; }
-        .schedule-date-badge { font-size: 0.75rem; background: #334155; color: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-right: 5px; }
-        .schedule-time { font-size: 0.8rem; color: #38bdf8; font-weight: bold; display: inline-block; }
-        .schedule-text { font-size: 0.9rem; margin-top: 4px; }
-        .btn-gold { background-color: #f59e0b; color: #0f172a; font-weight: bold; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; }
-        
-        /* 📅 달력 아이콘 클릭 스타일 추가 */
-        .clickable-icon { cursor: pointer; transition: transform 0.2s; display: inline-block; }
-        .clickable-icon:hover { transform: scale(1.15); text-shadow: 0 0 8px #f59e0b; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>나의 비서 - Executive Cyber Dashboard</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        /* 🌌 미래도시 스타일 홀로그램 모달 창 기본 구조 */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(12px);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-overlay.active { display: flex; }
+    body {
+      background-color: #0d1527;
+      color: #e2e8f0;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      padding: 20px;
+    }
 
-        .cyber-modal {
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
-            border: 1px solid #f59e0b;
-            box-shadow: 0 0 25px rgba(245, 158, 11, 0.3), inset 0 0 15px rgba(56, 189, 248, 0.15);
-            border-radius: 16px;
-            width: 90%;
-            max-width: 420px;
-            padding: 25px;
-            position: relative;
-            transform: scale(0.8);
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .modal-overlay.active .cyber-modal { transform: scale(1); opacity: 1; }
+    /* 상단 헤더 */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #1e293b;
+    }
 
-        .cyber-header {
-            font-size: 1.1rem; font-weight: bold; color: #f59e0b;
-            text-transform: uppercase; letter-spacing: 2px;
-            border-bottom: 1px solid rgba(245, 158, 11, 0.3);
-            padding-bottom: 12px; margin-bottom: 20px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
+    .header h1 {
+      font-size: 1.5rem;
+      color: #f59e0b;
+    }
 
-        .cyber-input-group { margin-bottom: 15px; }
-        .cyber-label { display: block; font-size: 0.8rem; color: #38bdf8; margin-bottom: 6px; letter-spacing: 1px; }
-        .cyber-input {
-            width: 100%; background: rgba(15, 23, 42, 0.8);
-            border: 1px solid #334155; border-radius: 8px;
-            padding: 12px; color: #f8fafc; font-size: 0.9rem; outline: none;
-            transition: 0.3s;
-        }
-        .cyber-input:focus { border-color: #f59e0b; box-shadow: 0 0 10px rgba(245, 158, 11, 0.4); }
-        
-        .cyber-input::-webkit-calendar-picker-indicator {
-            filter: invert(71%) sepia(87%) saturate(486%) hue-rotate(346deg) brightness(103%) contrast(93%);
-            cursor: pointer;
-        }
+    .header .date {
+      color: #94a3b8;
+      font-size: 0.95rem;
+    }
 
-        .modal-btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-cancel { background: #334155; color: #f8fafc; border: none; padding: 12px; border-radius: 8px; flex: 1; cursor: pointer; }
-        .btn-cyber-submit { background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-weight: bold; border: none; padding: 12px; border-radius: 8px; flex: 2; cursor: pointer; box-shadow: 0 0 12px rgba(245, 158, 11, 0.4); }
+    /* 메인 그리드 레이아웃 (시스템 정보 제거 후 2열/반응형 구성) */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+    }
 
-        /* 🔵 달력 전용 모달 스타일 (사이버 틸/블루 테마) */
-        .cal-modal { border-color: #06b6d4; box-shadow: 0 0 25px rgba(6, 182, 212, 0.3), inset 0 0 15px rgba(56, 189, 248, 0.15); }
-        .cal-header { border-bottom: 1px solid rgba(6, 182, 212, 0.3); }
-        
-        /* 달력 네비게이션 조작창 */
-        .cal-nav-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .cal-title-text { font-size: 1.1rem; font-weight: bold; color: #38bdf8; letter-spacing: 1px; }
-        .cal-arrows { display: flex; gap: 8px; }
-        .btn-cal-arrow { background: #1e293b; border: 1px solid #334155; color: #06b6d4; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
-        .btn-cal-arrow:hover { background: #06b6d4; color: #0f172a; box-shadow: 0 0 8px #06b6d4; }
+    @media (max-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
 
-        /* 달력 그리드 구조 */
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; margin-bottom: 15px; }
-        .cal-day-header { font-size: 0.75rem; font-weight: bold; color: #94a3b8; padding: 4px 0; }
-        .cal-cell { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 6px; padding: 10px 0; font-size: 0.85rem; cursor: pointer; transition: 0.2s; color: #e2e8f0; min-height: 38px; position: relative; }
-        .cal-cell:hover { border-color: #06b6d4; background: rgba(6, 182, 212, 0.1); color: #22d3ee; }
-        .cal-cell.today { border-color: #f59e0b; color: #f59e0b; font-weight: bold; background: rgba(245, 158, 11, 0.05); }
-        .cal-cell.selected { border-color: #06b6d4; background: #06b6d4 !important; color: #0f172a !important; font-weight: bold; box-shadow: 0 0 10px rgba(6, 182, 212, 0.5); }
-        .cal-cell.has-event::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: #f59e0b; border-radius: 50%; box-shadow: 0 0 4px #f59e0b; }
-        .cal-cell.empty { background: transparent; border: none; cursor: default; }
+    /* 카드 공통 스타일 */
+    .card {
+      background-color: #172033;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
 
-        /* 달력 하단 메모 보드 */
-        .cal-memo-board { background: rgba(15, 23, 42, 0.8); border: 1px solid #334155; border-radius: 10px; padding: 15px; max-height: 140px; overflow-y: auto; }
-        .memo-date-title { font-size: 0.85rem; color: #38bdf8; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #334155; padding-bottom: 4px; }
-        .memo-item { font-size: 0.85rem; color: #e2e8f0; padding: 4px 0; display: flex; gap: 8px; align-items: flex-start; }
-        .memo-empty { font-size: 0.82rem; color: #64748b; font-style: italic; text-align: center; padding: 10px 0; }
-    </style>
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #38bdf8;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 비서 프로필 영역 */
+    .secretary-card img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      object-fit: cover;
+      margin-bottom: 12px;
+    }
+
+    .briefing-box {
+      background-color: #0f172a;
+      border: 1px solid #f59e0b;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      margin-top: auto;
+    }
+
+    /* 일정 영역 */
+    .schedule-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .btn-add {
+      background-color: #f59e0b;
+      color: #000;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .btn-add:hover {
+      background-color: #d97706;
+    }
+
+    .schedule-item {
+      background-color: #0f172a;
+      border-left: 4px solid #38bdf8;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    .schedule-date {
+      font-size: 0.8rem;
+      color: #f59e0b;
+      font-weight: bold;
+    }
+
+    .schedule-time {
+      font-size: 0.85rem;
+      color: #38bdf8;
+      margin-bottom: 4px;
+    }
+
+    .schedule-text {
+      font-size: 0.95rem;
+      color: #f8fafc;
+    }
+  </style>
 </head>
 <body>
 
-    <header>
-        <h1>나의 비서 DASHBOARD V2.5</h1>
-        <div class="header-info" id="clock">로딩 중... | 호칭:  사랑하는 사장님</div>
-    </header>
+  <!-- 헤더 -->
+  <header class="header">
+    <h1>나의 비서 DASHBOARD V2.5</h1>
+    <div class="date">2026.07.22 (수)</div>
+  </header>
 
-    <div class="dashboard-grid">
-        <div class="card">
-            <div class="card-title">👩‍💼 수석 비서 (대전)</div>
-            <div class="assistant-img-wrapper">
+  <!-- 대시보드 메인 영역 -->
+  <main class="dashboard-grid">
+    
+    <!-- 1. 수석 비서 카드 -->
+    <section class="card secretary-card">
+      <div class="card-title">
+        <span>👩‍💼</span> 수석 비서 (대전)
+      </div>
+      <!-- 프로필 이미지 (필요시 이미지 경로 수정) -->
+      <img src="https://via.placeholder.com/300x400" alt="수석 비서">
+      
+      <div class="briefing-box">
+        <strong>💬 비서 브리핑:</strong><br>
+        "새로운 일정을 홀로그램 입력 창에 등록해 보세요, 사랑하는 사장님!"
+      </div>
+    </section>
 
-                <img src="1000138749.jpg" alt="비서" class="assistant-img" id="secretary-img">
-            </div>
-            <div class="speech-bubble" id="secretary-message">
-                💬 <strong>비서 브리핑:</strong><br>"새로운 일정을 홀로그램 입력 창에 등록해 보세요,  사랑하는 사장님!"
-            </div>
+    <!-- 2. 오늘 일정 카드 -->
+    <section class="card schedule-card">
+      <div class="schedule-header">
+        <div class="card-title" style="margin-bottom: 0;">
+          <span>📅</span> 오늘 일정
         </div>
+        <button class="btn-add">+ 일정 추가</button>
+      </div>
 
-        <div class="card">
-            <div class="card-title">
-                <span>
-                    <!-- 📅 클릭 가능한 아이콘 스타일 적용 및 함수 연결 -->
-                    <span class="clickable-icon" onclick="openCalendarModal()">📅</span> 오늘 일정
-                </span>
-                <button class="btn-gold" style="font-size:0.8rem; padding:6px 12px;" onclick="openScheduleModal()">+ 일정 추가</button>
-            </div>
-            <div id="schedule-container">
-                <div class="schedule-item">
-                    <div>
-                        <span class="schedule-date-badge">07-20</span>
-                        <div class="schedule-time">09:30 AM</div>
-                        <div class="schedule-text">대전 사업소 주간 업무 보고</div>
-                    </div>
-                </div>
-            </div>
+      <!-- 일정 목록 -->
+      <div class="schedule-list">
+        <div class="schedule-item">
+          <div class="schedule-date">07-20</div>
+          <div class="schedule-time">09:30 AM</div>
+          <div class="schedule-text">대전 사업소 주간 업무 보고</div>
         </div>
-        
-        <div class="card">
-            <div class="card-title">⚙️ 시스템 정보</div>
-            <p style="font-size: 0.85rem; color: #94a3b8;">홀로그램 모달 UI 모드 활성화 완료</p>
-        </div>
-    </div>
+      </div>
+    </section>
 
-    <!-- 🌐 미래 도시 사이버네틱 팝업창 (일정 추가 Modal) -->
-    <div class="modal-overlay" id="scheduleModal">
-        <div class="cyber-modal">
-            <div class="cyber-header">
-                <span>🌐 NEW SCHEDULE INPUT</span>
-                <span style="font-size: 0.8rem; color: #38bdf8;">[CYBER-UI]</span>
-            </div>
-            
-            <div class="cyber-input-group">
-                <label class="cyber-label">📅 DATE (날짜 선택)</label>
-                <input type="date" class="cyber-input" id="modalDate">
-            </div>
+  </main>
 
-            <div class="cyber-input-group">
-                <label class="cyber-label">⏰ TIME (시간)</label>
-                <input type="time" class="cyber-input" id="modalTime" value="14:00">
-            </div>
-
-            <div class="cyber-input-group">
-                <label class="cyber-label">📝 TASK / EVENT (일정 내용)</label>
-                <input type="text" class="cyber-input" id="modalText" placeholder="예: 대전 프로젝트 전략 회의">
-            </div>
-
-            <div class="modal-btn-group">
-                <button class="btn-cancel" onclick="closeScheduleModal()">취소</button>
-                <button class="btn-cyber-submit" onclick="submitSchedule()">+ 일정 등록하기</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 🔵 사이버 홀로그램 달력 팝업창 (달력 조회 Modal) -->
-    <div class="modal-overlay" id="calendarModal">
-        <div class="cyber-modal cal-modal">
-            <div class="cyber-header cal-header">
-                <span style="color: #06b6d4;">🌐 CYBERNETIC CALENDAR</span>
-                <span style="font-size: 0.8rem; color: #38bdf8;">[VIEW-MODE]</span>
-            </div>
-            
-            <!-- 상단 년도 및 월 이동 컨트롤러 -->
-            <div class="cal-nav-container">
-                <div class="cal-title-text" id="calendarTitle">2026.07</div>
-                <div class="cal-arrows">
-                    <button class="btn-cal-arrow" onclick="moveMonth(-1)">&lt;</button>
-                    <button class="btn-cal-arrow" onclick="moveMonth(1)">&gt;</button>
-                </div>
-            </div>
-
-            <!-- 달력 본체 그리드 -->
-            <div class="cal-grid" id="calendarGrid"></div>
-
-            <!-- 하단 선택 날짜 메모 보드 -->
-            <label class="cyber-label">📝 SYSTEM MEMO BOARD</label>
-            <div class="cal-memo-board">
-                <div class="memo-date-title" id="memoDateTitle">날짜를 선택하세요</div>
-                <div id="memoContent"></div>
-            </div>
-
-            <div class="modal-btn-group">
-                <button class="btn-cancel" style="border: 1px solid #06b6d4; color: #22d3ee;" onclick="closeCalendarModal()">시스템 닫기</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // 기본 일정 데이터 관리 객체 (초기 예시 추가)
-        let scheduleData = {
-            "2026-07-20": [
-                { time: "09:30 AM", text: "대전 사업소 주간 업무 보고" }
-            ]
-        };
-
-        let currentCalendarDate = new Date(); // 현재 달력 조회 기준 날짜
-
-        window.onload = function() {
-            changeSecretaryImageByDay();
-            startLiveClock();
-            speakText("새로운 일정을 홀로그램 입력 창에 등록해 보세요,  사랑하는 사장님!");
-        };
-
-       function speakText(text) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'ko-KR';
-                utterance.rate = 1.0;
-                utterance.pitch = 1.0;
-
-                const voices = window.speechSynthesis.getVoices();
-                const preferredVoice = voices.find(voice => voice.lang === 'ko-KR' && voice.name.includes('Google'));
-                if (preferredVoice) {
-                    utterance.voice = preferredVoice;
-                }
-
-                // ─── 여기서부터 이미지 변경 로직이 추가되었습니다 ───
-                const imgTag = document.getElementById('secretary-img');
-                let originalSrc = '';
-
-                // 음성 시작할 때 현재 이미지를 기억하고 '음성.jpg'로 변경
-                utterance.onstart = function() {
-                    if (imgTag) {
-                        originalSrc = imgTag.src; // 현재 적용된 요일별 이미지 경로 저장
-                        imgTag.src = '음성.jpg';   // 음성 재생용 이미지로 변경
-                    }
-                };
-
-                // 음성 출력이 완료되면 원래 이미지로 복구
-                utterance.onend = function() {
-                    if (imgTag && originalSrc) {
-                        imgTag.src = originalSrc;
-                    }
-                };
-
-                // 혹시 모를 에러 발생 시에도 원래 이미지로 복구
-                utterance.onerror = function() {
-                    if (imgTag && originalSrc) {
-                        imgTag.src = originalSrc;
-                    }
-                };
-                // ─────────────────────────────────────────────────────
-
-             
-                window.speechSynthesis.speak(utterance);
-            }
-        }
-
-        function changeSecretaryImageByDay() {
-            const today = new Date();
-            const dayOfWeek = today.getDay(); 
-
-            const imagesByDay = {
-                0: 'sun.jpg', 
-                1: 'mon1.jpg', 
-                2: 'tue.jpg', 
-                3: 'wen.jpg', 
-                4: 'thu.jpg', 
-                5: 'fri.jpg', 
-                6: 'sat.jpg' 
-            };
-
-            const imgTag = document.getElementById('secretary-img');
-            if (imgTag && imagesByDay[dayOfWeek]) {
-                imgTag.src = imagesByDay[dayOfWeek];
-            }
-        }
-
-        function startLiveClock() {
-            const clockEl = document.getElementById('clock');
-            const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-
-            function updateTime() {
-                const now = new Date();
-                const year = now.getFullYear();
-                const month = String(now.getMonth() + 1).padStart(2, '0');
-                const date = String(now.getDate()).padStart(2, '0');
-                const day = dayNames[now.getDay()];
-                
-                const hours = String(now.getHours()).padStart(2, '0');
-                const minutes = String(now.getMinutes()).padStart(2, '0');
-                const seconds = String(now.getSeconds()).padStart(2, '0');
-
-                clockEl.innerText = `${year}.${month}.${date} (${day})`;
-            }
-
-            updateTime();
-            setInterval(updateTime, 1000);
-        }
-
-        function openScheduleModal() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const date = String(today.getDate()).padStart(2, '0');
-            
-            document.getElementById('modalDate').value = `${year}-${month}-${date}`;
-            document.getElementById('scheduleModal').classList.add('active');
-        }
-
-        function closeScheduleModal() {
-            document.getElementById('scheduleModal').classList.remove('active');
-        }
-
-        function submitSchedule() {
-            const dateVal = document.getElementById('modalDate').value; 
-            const timeVal = document.getElementById('modalTime').value;
-            const textVal = document.getElementById('modalText').value;
-
-            if (!dateVal) {
-                alert("날짜를 선택해 주세요, 사랑하는 사장님!");
-                return;
-            }
-            if (!textVal) {
-                alert("일정 내용을 입력해 주세요,  사랑하는 사장님!");
-                return;
-            }
-
-            // AM/PM 형식 포맷 가공 함수
-            let displayTime = timeVal;
-            const timeParts = timeVal.split(':');
-            if (timeParts.length === 2) {
-                let hour = parseInt(timeParts[0]);
-                const min = timeParts[1];
-                const ampm = hour >= 12 ? 'PM' : 'AM';
-                hour = hour % 12;
-                hour = hour ? hour : 12; 
-                displayTime = `${String(hour).padStart(2, '0')}:${min} ${ampm}`;
-            }
-
-            // 데이터 관리용 객체에 일정 추가
-            if (!scheduleData[dateVal]) {
-                scheduleData[dateVal] = [];
-            }
-            scheduleData[dateVal].push({ time: displayTime, text: textVal });
-
-            // 대시보드 일정 목록 리프레시 생성
-            const dateParts = dateVal.split('-');
-            const displayDate = dateParts.length === 3 ? `${dateParts[1]}-${dateParts[2]}` : dateVal;
-
-            const container = document.getElementById('schedule-container');
-            const newItem = document.createElement('div');
-            newItem.className = 'schedule-item';
-            newItem.style.borderLeftColor = '#f59e0b';
-            
-            newItem.innerHTML = `
-                <div>
-                    <span class="schedule-date-badge">${displayDate}</span>
-                    <div class="schedule-time" style="color:#f59e0b;">${displayTime}</div>
-                    <div class="schedule-text">${textVal}</div>
-                </div>
-            `;
-            container.appendChild(newItem);
-
-            const speechBriefing = `${dateParts[1]}월 ${dateParts[2]}일, ${displayTime} 일정을 성공적으로 저장했습니다, 사랑하는 사장님!`;
-            
-            document.getElementById('secretary-message').innerHTML = `
-                💬 <strong>비서 브리핑:</strong><br>"${dateParts[1]}월 ${dateParts[2]}일 [${textVal}] 일정을 성공적으로 저장했습니다, 사랑하는  사장님!"
-            `;
-
-            speakText(speechBriefing);
-            document.getElementById('modalText').value = '';
-            closeScheduleModal();
-            
-            // 달력이 열려 있다면 리렌더링
-            if (document.getElementById('calendarModal').classList.contains('active')) {
-                renderCalendar();
-            }
-        }
-
-        /* 🔵 달력 조회 팝업(Modal) 비즈니스 로직 */
-        function openCalendarModal() {
-            currentCalendarDate = new Date(); // 기본값 오늘 날짜 설정
-            document.getElementById('calendarModal').classList.add('active');
-            renderCalendar();
-            
-            // 초기 메모판은 '오늘 날짜'로 자동 타겟팅
-            const todayStr = formatDateToString(new Date());
-            selectCalendarDate(todayStr);
-        }
-
-        function closeCalendarModal() {
-            document.getElementById('calendarModal').classList.remove('active');
-        }
-
-        // 월 이동 기능 (-1: 이전달, 1: 다음달)
-        function moveMonth(direction) {
-            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + direction);
-            renderCalendar();
-        }
-
-        // YYYY-MM-DD 변환 헬퍼 함수
-        function formatDateToString(dateObj) {
-            const y = dateObj.getFullYear();
-            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-            const d = String(dateObj.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
-        }
-
-        // 홀로그램 달력 렌더링 코어 함수
-        function renderCalendar() {
-            const year = currentCalendarDate.getFullYear();
-            const month = currentCalendarDate.getMonth();
-            
-            // 헤더 연도/월 텍스트 동적 반영
-            document.getElementById('calendarTitle').innerText = `${year}.${String(month + 1).padStart(2, '0')}`;
-
-            const gridContainer = document.getElementById('calendarGrid');
-            gridContainer.innerHTML = ''; // 초기화
-
-            // 요일 명칭 세팅
-            const dayLabels = ['일', '월', '화', '수', '목', '금', '토'];
-            dayLabels.forEach(label => {
-                const headerCell = document.createElement('div');
-                headerCell.className = 'cal-day-header';
-                headerCell.innerText = label;
-                if(label === '일') headerCell.style.color = '#ef4444';
-                if(label === '토') headerCell.style.color = '#3b82f6';
-                gridContainer.appendChild(headerCell);
-            });
-
-            // 이번 달의 첫 날 요일 구하기 및 마지막 날짜 구하기
-            const firstDayIndex = new Date(year, month, 1).getDay();
-            const lastDate = new Date(year, month + 1, 0).getDate();
-
-            // 공백 셀 추가 (시작 요일 전까지 빈칸 채우기)
-            for (let i = 0; i < firstDayIndex; i++) {
-                const emptyCell = document.createElement('div');
-                emptyCell.className = 'cal-cell empty';
-                gridContainer.appendChild(emptyCell);
-            }
-
-            // 날짜 셀 채우기
-            const todayStr = formatDateToString(new Date());
-            for (let day = 1; day <= lastDate; day++) {
-                const cellDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                
-                const dayCell = document.createElement('div');
-                dayCell.className = 'cal-cell';
-                dayCell.innerText = day;
-                dayCell.setAttribute('data-date', cellDateStr);
-
-                // 오늘 날짜 강조 하이라이팅
-                if (cellDateStr === todayStr) {
-                    dayCell.classList.add('today');
-                }
-
-                // 등록된 일정이 존재하는지 여부 체크하여 마킹 표기
-                if (scheduleData[cellDateStr] && scheduleData[cellDateStr].length > 0) {
-                    dayCell.classList.add('has-event');
-                }
-
-                // 날짜 클릭 이벤트 바인딩
-                dayCell.onclick = function() {
-                    // 기존 선택된 셀의 하이라이트 지우기
-                    document.querySelectorAll('.cal-cell.selected').forEach(el => el.classList.remove('selected'));
-                    // 현재 클릭 셀 하이라이트 활성화
-                    dayCell.classList.add('selected');
-                    // 하단 보드 데이터 노출 호출
-                    selectCalendarDate(cellDateStr);
-                };
-
-                gridContainer.appendChild(dayCell);
-            }
-        }
-
-        // 달력 내 특정 날짜 클릭 시 하단 메모 보드 데이터 제어 함수
-        function selectCalendarDate(dateStr) {
-            const parts = dateStr.split('-');
-            document.getElementById('memoDateTitle').innerText = `🌐 [${parts[0]}년 ${parts[1]}월 ${parts[2]}일] 메모 분석 결과`;
-
-            const contentContainer = document.getElementById('memoContent');
-            contentContainer.innerHTML = ''; // 보드 초기화
-
-            const events = scheduleData[dateStr];
-            if (events && events.length > 0) {
-                events.forEach(item => {
-                    const memoRow = document.createElement('div');
-                    memoRow.className = 'memo-item';
-                    memoRow.innerHTML = `
-                        <span style="color: #f59e0b; font-weight: bold; min-width: 70px;">[${item.time}]</span>
-                        <span>${item.text}</span>
-                    `;
-                    contentContainer.appendChild(memoRow);
-                });
-            } else {
-                contentContainer.innerHTML = `<div class="memo-empty">등록된 일정이나 보관된 시스템 메모가 없습니다.</div>`;
-            }
-        }
-
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.onvoiceschanged = function() {
-                window.speechSynthesis.getVoices();
-            };
-        }
-    </script>
 </body>
 </html>
