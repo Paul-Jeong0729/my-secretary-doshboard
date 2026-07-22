@@ -1,17 +1,143 @@
-// 기본 일정 데이터 관리 객체
-let scheduleData = {
-    "2026-07-20": [
-        { time: "09:30 AM", text: "대전 사업소 주간 업무 보고" }
-    ]
-};
+import { db, collection, addDoc, getDocs, query, orderBy } from './firebase.js';
 
+let scheduleData = {}; // Firebase DB에서 불러온 일정이 저장될 객체
 let currentCalendarDate = new Date(); // 현재 달력 조회 기준 날짜
 
-window.onload = function() {
+window.onload = async function() {
     changeSecretaryImageByDay();
     startLiveClock();
-    speakText("새로운 일정을 홀로그램 입력 창에 등록해 보세요, 사랑하는 사장님!");
+    
+    // 1. Firebase DB에서 기존 일정 데이터 불러오기
+    await loadSchedulesFromDB();
+    
+    speakText("데이터베이스 연동이 완료되었습니다, 사랑하는 사장님!");
 };
+
+// -------------------------------------------------------------
+// 🔥 Firebase DB에서 일정 불러오기
+// -------------------------------------------------------------
+async function loadSchedulesFromDB() {
+    scheduleData = {}; // 초기화
+    const container = document.getElementById('schedule-container');
+    container.innerHTML = ''; // 기존 HTML 목록 초기화
+
+    try {
+        const q = query(collection(db, "schedules"));
+        const querySnapshot = await getDocs(q);
+
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const dateVal = data.date; // YYYY-MM-DD
+            
+            if (!scheduleData[dateVal]) {
+                scheduleData[dateVal] = [];
+            }
+            scheduleData[dateVal].push({ time: data.time, text: data.text });
+
+            // 화면 대시보드 리스트에 표시
+            renderScheduleItem(dateVal, data.time, data.text);
+        });
+    } catch (error) {
+        console.error("데이터베이스 불러오기 실패:", error);
+    }
+}
+
+// 대시보드에 일정 아이템 렌더링 헬퍼
+function renderScheduleItem(dateVal, displayTime, textVal) {
+    const container = document.getElementById('schedule-container');
+    const dateParts = dateVal.split('-');
+    const displayDate = dateParts.length === 3 ? `${dateParts[1]}-${dateParts[2]}` : dateVal;
+
+    const newItem = document.createElement('div');
+    newItem.className = 'schedule-item';
+    newItem.style.borderLeftColor = '#f59e0b';
+    
+    newItem.innerHTML = `
+        <div>
+            <span class="schedule-date-badge">${displayDate}</span>
+            <div class="schedule-time" style="color:#f59e0b;">${displayTime}</div>
+            <div class="schedule-text">${textVal}</div>
+        </div>
+    `;
+    container.appendChild(newItem);
+}
+
+// -------------------------------------------------------------
+// 🔥 Firebase DB에 일정 저장하기
+// -------------------------------------------------------------
+async function submitSchedule() {
+    const dateVal = document.getElementById('modalDate').value; 
+    const timeVal = document.getElementById('modalTime').value;
+    const textVal = document.getElementById('modalText').value;
+
+    if (!dateVal) {
+        alert("날짜를 선택해 주세요, 사랑하는 사장님!");
+        return;
+    }
+    if (!textVal) {
+        alert("일정 내용을 입력해 주세요, 사랑하는 사장님!");
+        return;
+    }
+
+    // 시간 포맷 변환 (AM/PM)
+    let displayTime = timeVal;
+    const timeParts = timeVal.split(':');
+    if (timeParts.length === 2) {
+        let hour = parseInt(timeParts[0]);
+        const min = timeParts[1];
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        hour = hour % 12;
+        hour = hour ? hour : 12; 
+        displayTime = `${String(hour).padStart(2, '0')}:${min} ${ampm}`;
+    }
+
+    try {
+        // Firebase Firestore 'schedules' 컬렉션에 데이터 추가
+        await addDoc(collection(db, "schedules"), {
+            date: dateVal,
+            time: displayTime,
+            text: textVal,
+            createdAt: new Date().toISOString()
+        });
+
+        // 로컬 데이터 메모리 업데이트
+        if (!scheduleData[dateVal]) {
+            scheduleData[dateVal] = [];
+        }
+        scheduleData[dateVal].push({ time: displayTime, text: textVal });
+
+        // 화면 리스트에 바로 반영
+        renderScheduleItem(dateVal, displayTime, textVal);
+
+        const dateParts = dateVal.split('-');
+        const speechBriefing = `${dateParts[1]}월 ${dateParts[2]}일, ${displayTime} 일정을 데이터베이스에 저장했습니다, 사랑하는 사장님!`;
+        
+        document.getElementById('secretary-message').innerHTML = `
+            💬 <strong>비서 브리핑:</strong><br>"${dateParts[1]}월 ${dateParts[2]}일 [${textVal}] 일정을 성공적으로 저장했습니다, 사랑하는 사장님!"
+        `;
+
+        speakText(speechBriefing);
+        document.getElementById('modalText').value = '';
+        closeScheduleModal();
+        
+        // 달력이 열려 있다면 갱신
+        if (document.getElementById('calendarModal').classList.contains('active')) {
+            renderCalendar();
+        }
+
+    } catch (error) {
+        console.error("Firebase 저장 에러:", error);
+        alert("데이터베이스 저장 중 오류가 발생했습니다.");
+    }
+}
+
+// window 전역 함수 등록 (HTML onclick 이벤트에서 호출 가능하도록)
+window.openScheduleModal = openScheduleModal;
+window.closeScheduleModal = closeScheduleModal;
+window.submitSchedule = submitSchedule;
+window.openCalendarModal = openCalendarModal;
+window.closeCalendarModal = closeCalendarModal;
+window.moveMonth = moveMonth;
 
 function speakText(text) {
     if ('speechSynthesis' in window) {
@@ -105,69 +231,6 @@ function closeScheduleModal() {
     document.getElementById('scheduleModal').classList.remove('active');
 }
 
-function submitSchedule() {
-    const dateVal = document.getElementById('modalDate').value; 
-    const timeVal = document.getElementById('modalTime').value;
-    const textVal = document.getElementById('modalText').value;
-
-    if (!dateVal) {
-        alert("날짜를 선택해 주세요, 사랑하는 사장님!");
-        return;
-    }
-    if (!textVal) {
-        alert("일정 내용을 입력해 주세요, 사랑하는 사장님!");
-        return;
-    }
-
-    let displayTime = timeVal;
-    const timeParts = timeVal.split(':');
-    if (timeParts.length === 2) {
-        let hour = parseInt(timeParts[0]);
-        const min = timeParts[1];
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        hour = hour % 12;
-        hour = hour ? hour : 12; 
-        displayTime = `${String(hour).padStart(2, '0')}:${min} ${ampm}`;
-    }
-
-    if (!scheduleData[dateVal]) {
-        scheduleData[dateVal] = [];
-    }
-    scheduleData[dateVal].push({ time: displayTime, text: textVal });
-
-    const dateParts = dateVal.split('-');
-    const displayDate = dateParts.length === 3 ? `${dateParts[1]}-${dateParts[2]}` : dateVal;
-
-    const container = document.getElementById('schedule-container');
-    const newItem = document.createElement('div');
-    newItem.className = 'schedule-item';
-    newItem.style.borderLeftColor = '#f59e0b';
-    
-    newItem.innerHTML = `
-        <div>
-            <span class="schedule-date-badge">${displayDate}</span>
-            <div class="schedule-time" style="color:#f59e0b;">${displayTime}</div>
-            <div class="schedule-text">${textVal}</div>
-        </div>
-    `;
-    container.appendChild(newItem);
-
-    const speechBriefing = `${dateParts[1]}월 ${dateParts[2]}일, ${displayTime} 일정을 성공적으로 저장했습니다, 사랑하는 사장님!`;
-    
-    document.getElementById('secretary-message').innerHTML = `
-        💬 <strong>비서 브리핑:</strong><br>"${dateParts[1]}월 ${dateParts[2]}일 [${textVal}] 일정을 성공적으로 저장했습니다, 사랑하는 사장님!"
-    `;
-
-    speakText(speechBriefing);
-    document.getElementById('modalText').value = '';
-    closeScheduleModal();
-    
-    if (document.getElementById('calendarModal').classList.contains('active')) {
-        renderCalendar();
-    }
-}
-
-/* 🔵 달력 조회 Modal 비즈니스 로직 */
 function openCalendarModal() {
     currentCalendarDate = new Date();
     document.getElementById('calendarModal').classList.add('active');
@@ -269,10 +332,4 @@ function selectCalendarDate(dateStr) {
     } else {
         contentContainer.innerHTML = `<div class="memo-empty">등록된 일정이나 보관된 시스템 메모가 없습니다.</div>`;
     }
-}
-
-if ('speechSynthesis' in window) {
-    window.speechSynthesis.onvoiceschanged = function() {
-        window.speechSynthesis.getVoices();
-    };
 }
