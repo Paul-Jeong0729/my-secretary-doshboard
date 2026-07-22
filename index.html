@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>나의 비서 - Executive Cyber Dashboard</title>
-    <!-- 외부 CSS 불러오기 -->
+    <!-- CSS 불러오기 -->
     <link rel="stylesheet" href="src/style.css">
 </head>
 <body>
@@ -28,18 +28,12 @@
         <div class="card">
             <div class="card-title">
                 <span>
-                    <span class="clickable-icon" onclick="openCalendarModal()">📅</span> 오늘 일정
+                    <span class="clickable-icon" id="btnOpenCalendar">📅</span> 오늘 일정
                 </span>
-                <button class="btn-gold" style="font-size:0.8rem; padding:6px 12px;" onclick="openScheduleModal()">+ 일정 추가</button>
+                <button class="btn-gold" style="font-size:0.8rem; padding:6px 12px;" id="btnOpenSchedule">+ 일정 추가</button>
             </div>
             <div id="schedule-container">
-                <div class="schedule-item">
-                    <div>
-                        <span class="schedule-date-badge">07-20</span>
-                        <div class="schedule-time">09:30 AM</div>
-                        <div class="schedule-text">대전 사업소 주간 업무 보고</div>
-                    </div>
-                </div>
+                <!-- JS에서 일정목록을 동적으로 로드합니다 -->
             </div>
         </div>
         
@@ -72,13 +66,13 @@
             </div>
 
             <div class="modal-btn-group">
-                <button class="btn-cancel" onclick="closeScheduleModal()">취소</button>
-                <button class="btn-cyber-submit" onclick="submitSchedule()">+ 일정 등록하기</button>
+                <button class="btn-cancel" id="btnCloseSchedule">취소</button>
+                <button class="btn-cyber-submit" id="btnSubmitSchedule">+ 일정 등록하기</button>
             </div>
         </div>
     </div>
 
-    <!-- 🔵 사이버 홀로그램 달력 팝업창 (달력 클릭 시 스크롤 가능하도록 수정) -->
+    <!-- 🔵 사이버 홀로그램 달력 팝업창 -->
     <div class="modal-overlay" id="calendarModal">
         <div class="cyber-modal cal-modal">
             <div class="cyber-header cal-header">
@@ -88,8 +82,8 @@
             <div class="cal-nav-container">
                 <div class="cal-title-text" id="calendarTitle">2026.07</div>
                 <div class="cal-arrows">
-                    <button class="btn-cal-arrow" onclick="moveMonth(-1)">&lt;</button>
-                    <button class="btn-cal-arrow" onclick="moveMonth(1)">&gt;</button>
+                    <button class="btn-cal-arrow" id="btnPrevMonth">&lt;</button>
+                    <button class="btn-cal-arrow" id="btnNextMonth">&gt;</button>
                 </div>
             </div>
 
@@ -102,124 +96,28 @@
             </div>
 
             <div class="modal-btn-group">
-                <button class="btn-cancel" style="border: 1px solid #06b6d4; color: #22d3ee;" onclick="closeCalendarModal()">시스템 닫기</button>
+                <button class="btn-cancel" style="border: 1px solid #06b6d4; color: #22d3ee;" id="btnCloseCalendar">시스템 닫기</button>
             </div>
         </div>
     </div>
 
-    <!-- 외부 JS 불러오기 -->
-    <script src="src/main.js"></script>
-</body>
-</html><!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>나의 비서 - Executive Cyber Dashboard</title>
-    <!-- 외부 CSS 불러오기 -->
-    <link rel="stylesheet" href="src/style.css">
-</head>
-<body>
+    <!-- JS 이벤트 리스너 안전 등록 코드 추가 -->
+    <script type="module">
+        import { 
+            openScheduleModal, closeScheduleModal, submitSchedule,
+            openCalendarModal, closeCalendarModal, moveMonth 
+        } from './src/main.js';
 
-    <header>
-        <h1>나의 비서 DASHBOARD V2.5</h1>
-        <div class="header-info" id="clock">로딩 중... | 호칭: 사랑하는 사장님</div>
-    </header>
-
-    <div class="dashboard-grid">
-        <div class="card">
-            <div class="card-title">👩‍💼 수석 비서 (대전)</div>
-            <div class="assistant-img-wrapper">
-                <img src="1000138749.jpg" alt="비서" class="assistant-img" id="secretary-img">
-            </div>
-            <div class="speech-bubble" id="secretary-message">
-                💬 <strong>비서 브리핑:</strong><br>"새로운 일정을 홀로그램 입력 창에 등록해 보세요, 사랑하는 사장님!"
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-title">
-                <span>
-                    <span class="clickable-icon" onclick="openCalendarModal()">📅</span> 오늘 일정
-                </span>
-                <button class="btn-gold" style="font-size:0.8rem; padding:6px 12px;" onclick="openScheduleModal()">+ 일정 추가</button>
-            </div>
-            <div id="schedule-container">
-                <div class="schedule-item">
-                    <div>
-                        <span class="schedule-date-badge">07-20</span>
-                        <div class="schedule-time">09:30 AM</div>
-                        <div class="schedule-text">대전 사업소 주간 업무 보고</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        // 버튼 클릭 이벤트 직접 연결
+        document.getElementById('btnOpenSchedule')?.addEventListener('click', openScheduleModal);
+        document.getElementById('btnCloseSchedule')?.addEventListener('click', closeScheduleModal);
+        document.getElementById('btnSubmitSchedule')?.addEventListener('click', submitSchedule);
         
-        <div class="card">
-            <div class="card-title">⚙️ 시스템 정보</div>
-            <p style="font-size: 0.85rem; color: #94a3b8;">홀로그램 모달 UI 모드 활성화 완료</p>
-        </div>
-    </div>
-
-    <!-- 🌐 일정 추가 Modal -->
-    <div class="modal-overlay" id="scheduleModal">
-        <div class="cyber-modal">
-            <div class="cyber-header">
-                <span>🌐 NEW SCHEDULE INPUT</span>
-            </div>
-            
-            <div class="cyber-input-group">
-                <label class="cyber-label">📅 DATE (날짜 선택)</label>
-                <input type="date" class="cyber-input" id="modalDate">
-            </div>
-
-            <div class="cyber-input-group">
-                <label class="cyber-label">⏰ TIME (시간)</label>
-                <input type="time" class="cyber-input" id="modalTime" value="14:00">
-            </div>
-
-            <div class="cyber-input-group">
-                <label class="cyber-label">📝 TASK / EVENT (일정 내용)</label>
-                <input type="text" class="cyber-input" id="modalText" placeholder="예: 대전 프로젝트 전략 회의">
-            </div>
-
-            <div class="modal-btn-group">
-                <button class="btn-cancel" onclick="closeScheduleModal()">취소</button>
-                <button class="btn-cyber-submit" onclick="submitSchedule()">+ 일정 등록하기</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 🔵 사이버 홀로그램 달력 팝업창 (달력 클릭 시 스크롤 가능하도록 수정) -->
-    <div class="modal-overlay" id="calendarModal">
-        <div class="cyber-modal cal-modal">
-            <div class="cyber-header cal-header">
-                <span style="color: #06b6d4;">🌐 CYBERNETIC CALENDAR</span>
-            </div>
-            
-            <div class="cal-nav-container">
-                <div class="cal-title-text" id="calendarTitle">2026.07</div>
-                <div class="cal-arrows">
-                    <button class="btn-cal-arrow" onclick="moveMonth(-1)">&lt;</button>
-                    <button class="btn-cal-arrow" onclick="moveMonth(1)">&gt;</button>
-                </div>
-            </div>
-
-            <div class="cal-grid" id="calendarGrid"></div>
-
-            <label class="cyber-label">📝 SYSTEM MEMO BOARD</label>
-            <div class="cal-memo-board">
-                <div class="memo-date-title" id="memoDateTitle">날짜를 선택하세요</div>
-                <div id="memoContent"></div>
-            </div>
-
-            <div class="modal-btn-group">
-                <button class="btn-cancel" style="border: 1px solid #06b6d4; color: #22d3ee;" onclick="closeCalendarModal()">시스템 닫기</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 외부 JS 불러오기 -->
-    <script src="src/main.js"></script>
+        document.getElementById('btnOpenCalendar')?.addEventListener('click', openCalendarModal);
+        document.getElementById('btnCloseCalendar')?.addEventListener('click', closeCalendarModal);
+        
+        document.getElementById('btnPrevMonth')?.addEventListener('click', () => moveMonth(-1));
+        document.getElementById('btnNextMonth')?.addEventListener('click', () => moveMonth(1));
+    </script>
 </body>
 </html>
