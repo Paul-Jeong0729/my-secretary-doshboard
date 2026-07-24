@@ -1,0 +1,44 @@
+.table-4 {
+  width: 300px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 시스템 정보 제목 글자색 변경 */
+.table-4 h2 {
+  color: var(--accent-color);
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.system-info-content {
+  background: #0f172a;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--sub-text);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 15px;
+}
+
+.system-info-content hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 10px 0;
+}
+
+#quick-memo {
+  width: 100%;
+  flex: 1;
+  min-height: 100px;
+  background: #1e293b;
+  color: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 6px;
+  resize: none;
+  margin-top: 5px;
+}
