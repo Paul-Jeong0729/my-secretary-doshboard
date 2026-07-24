@@ -7,7 +7,7 @@ const dayImages = {
   0: 'images/sun.jpg', // 일요일
   1: 'images/mon.jpg', // 월요일
   2: 'images/tue.jpg', // 화요일
-  3: 'images/wen.jpg', // 수요일
+  3: 'images/wed.jpg', // 수요일
   4: 'images/thu.jpg', // 목요일
   5: 'images/fri.jpg', // 금요일
   6: 'images/sat.jpg'  // 토요일
