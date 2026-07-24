@@ -10,12 +10,9 @@
   <link rel="stylesheet" href="css/table2.css">
   <link rel="stylesheet" href="css/table3.css">
   <link rel="stylesheet" href="css/table4.css">
-  <link rel="stylesheet" href="css/schedule-items.css">
 </head>
 <body>
-
   <div class="dashboard-main">
-    
     <!-- 1번 테이블: 나의 비서 (헤더 영역) -->
     <header class="card table-1">
       <h1>My Secretary DashBoard <span>V3.0</span></h1>
@@ -24,7 +21,6 @@
     <!-- 1번 아래 영역 (가로 스크롤 가능한 컨테이너) -->
     <div class="dashboard-scroll-wrapper">
       <div class="bottom-cards-container">
-        
         <!-- 2번 테이블: 수석 비서 -->
         <section class="card table-2">
           <h2>👩‍💼 수석 비서</h2>
@@ -37,7 +33,7 @@
             </div>
           </div>
           <div class="briefing-box">
-            💡 <strong>비서 브리핑:</strong><br>
+💡 <strong>비서 브리핑:</strong><br>
             <span id="briefing-text">"오늘도 즐겁고 힘찬 하루 보내십시오, 사랑하는 사장님!"</span>
           </div>
         </section>
@@ -63,30 +59,33 @@
           </div>
         </section>
 
-        <!-- 4번 테이블: 시스템 정보 -->
+        <!-- 4번 테이블: 송촌1부 관리 -->
         <section class="card table-4">
           <div class="header-flex">
-            <h2>⚙️ 시스템 정보</h2>
+            <h2>송촌1부 관리</h2>
           </div>
-          <div class="system-info-content">
-            <p>🟢 시스템 상태: 정상</p>
-            <p>💾 저장소: 활성화 (localStorage)</p>
-            <hr>
-            <p>📝 <strong>빠른 메모:</strong></p>
-            <textarea id="quick-memo" placeholder="메모를 입력하세요..."></textarea>
-          </div>
-        </section>
 
+          <!-- 구역 / 전도 / 심방 / 말씀 메뉴 (클릭 시 새 창) -->
+          <nav class="dept-menu">
+            <a href="구역.html" target="_blank" rel="noopener noreferrer" class="dept-menu-item">구역</a>
+            <a href="전도.html" target="_blank" rel="noopener noreferrer" class="dept-menu-item">전도</a>
+            <a href="심방.html" target="_blank" rel="noopener noreferrer" class="dept-menu-item">심방</a>
+            <a href="말씀.html" target="_blank" rel="noopener noreferrer" class="dept-menu-item">말씀</a>
+          </nav>
+
+          <hr class="dept-divider">
+
+          <p class="quick-memo-label">📝 <strong>빠른 메모:</strong></p>
+          <textarea id="quick-memo" placeholder="메모를 입력하고 Enter를 누르면 오늘 일정에 추가됩니다..."></textarea>
+        </section>
       </div>
     </div>
-
   </div>
 
   <!-- 🔮 SF 홀로그램 달력 모달 -->
   <div id="calendar-modal" class="holo-modal-overlay hidden">
     <div class="holo-modal-card">
       <div class="holo-scanline"></div>
-      
       <!-- 모달 상단 헤더 -->
       <div class="holo-header">
         <div class="holo-nav">
@@ -96,7 +95,6 @@
         </div>
         <button id="cal-close" class="holo-close-btn">&times;</button>
       </div>
-
       <!-- 달력 그리드 영역 -->
       <div class="holo-body">
         <div class="cal-weekdays">
@@ -105,7 +103,6 @@
         <div id="cal-days-grid" class="cal-days-grid">
           <!-- 날짜 셀 자바스크립트로 생성 -->
         </div>
-
         <!-- 선택 날짜 일정 리스트 -->
         <div class="holo-schedule-section">
           <div class="holo-section-title">
@@ -123,31 +120,26 @@
 <div id="scheduleModal" class="holo-modal-overlay hidden">
   <div class="holo-modal-card orange-theme">
     <div class="holo-scanline"></div>
-    
     <!-- 1. 오른쪽 상단 X 버튼 제거 -->
     <div class="holo-header">
       <span class="holo-title">🌐 NEW SCHEDULE INPUT</span>
     </div>
-
     <form id="scheduleForm" onsubmit="handleScheduleSubmit(event)">
       <!-- 2. 날짜 선택 (클릭 시 달력 팝업) -->
       <div class="holo-form-group">
         <label for="schedDate">📅 DATE (날짜 선택)</label>
         <input type="date" id="schedDate" required />
       </div>
-
       <!-- 3. 시간 선택 (클릭 시 시계 팝업) -->
       <div class="holo-form-group">
         <label for="schedTime">⏰ TIME (시간 선택)</label>
         <input type="time" id="schedTime" required />
       </div>
-
       <!-- 5. 입력 항목 -->
       <div class="holo-form-group">
         <label for="schedTask">📝 TASK / EVENT (일정 내용)</label>
         <input type="text" id="schedTask" placeholder="일정을 입력하세요" required autocomplete="off" />
       </div>
-
       <!-- 4. 하단 긴 버튼 영역 -->
       <div class="holo-modal-footer">
         <button type="submit" class="holo-btn submit-btn">일정 추가</button>
@@ -156,7 +148,6 @@
     </form>
   </div>
 </div>
-
 
   <!-- JS 연결 (중복 제거 및 올바른 순서 배치) -->
   <script src="js/secretary.js"></script>
