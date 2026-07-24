@@ -1,0 +1,115 @@
+/* 2, 3, 4번 테이블 고정 너비: 화면보다 길어지면 dashboard-scroll-wrapper가 가로 스크롤 처리 */
+.bottom-cards-container {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.table-2,
+.table-3,
+.table-4 {
+  flex: 0 0 320px;
+  width: 320px;
+  min-width: 320px;
+  max-width: 320px;
+}
+
+/* 페이지 전체가 세로로 스크롤되도록 허용 (카드별 내부 스크롤 대신) */
+html,
+body {
+  height: auto;
+  min-height: 100%;
+  overflow-y: auto;
+}
+
+.dashboard-main,
+.dashboard-scroll-wrapper,
+.bottom-cards-container {
+  height: auto;
+  overflow-y: visible;
+}
+
+/* 2번 테이블(수석 비서) 세로 길이 확장: 이미지와 브리핑 박스 사이 간격 넓힘 */
+.table-2 {
+  height: auto;
+}
+
+.table-2 .secretary-avatar {
+  margin-bottom: 80px;
+}
+
+.schedule-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+}
+
+.schedule-time {
+  flex-shrink: 0;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.schedule-task {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule-delete-btn {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.15);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.schedule-delete-btn:hover {
+  background: rgba(220, 60, 60, 0.7);
+}
+
+.schedule-empty {
+  opacity: 0.6;
+  font-size: 13px;
+  padding: 8px 4px;
+}
+
+.cal-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal-day-cell {
+  position: relative;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 6px 0;
+  border-radius: 6px;
+}
+
+.cal-day-today {
+  font-weight: bold;
+}
+
+.cal-day-selected {
+  background: rgba(255, 140, 0, 0.25);
+}
+
+.cal-day-dot {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: orange;
+}
