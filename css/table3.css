@@ -276,3 +276,99 @@
   background: rgba(255, 140, 0, 0.2) !important;
   color: #ffffff !important;
 }
+
+/* ==========================================
+   [PART 3] 🟥 삭제 확인 홀로그램 모달 (빨간 테마)
+   ========================================== */
+
+.holo-modal-card.red-theme {
+  position: relative;
+  background: rgba(12, 18, 30, 0.65) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  border: 1.5px solid #ef4444 !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.35),
+              inset 0 0 15px rgba(239, 68, 68, 0.15) !important;
+  border-radius: 12px;
+
+  width: 380px;
+  max-width: 90%;
+  padding: 28px;
+  box-sizing: border-box;
+  animation: holoPop 0.25s ease-out forwards;
+}
+
+.holo-modal-card.red-theme .holo-header {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-bottom: 2px solid rgba(239, 68, 68, 0.7) !important;
+  padding-bottom: 12px !important;
+  margin-bottom: 20px !important;
+  justify-content: flex-start;
+}
+
+.holo-modal-card.red-theme .holo-title {
+  font-weight: 800;
+  font-size: 1.25rem !important;
+  color: #ef4444 !important;
+  text-shadow: 0 0 12px rgba(239, 68, 68, 0.7);
+  letter-spacing: 0.5px;
+}
+
+.delete-confirm-body {
+  text-align: center;
+  padding: 6px 0 4px;
+}
+
+.delete-confirm-body p {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.holo-modal-card.red-theme .holo-modal-footer {
+  display: flex;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.holo-modal-card.red-theme .holo-modal-footer .holo-btn {
+  flex: 1;
+  padding: 12px 0;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1;
+}
+
+.holo-modal-card.red-theme .confirm-btn {
+  background: linear-gradient(135deg, #ef4444, #b91c1c) !important;
+  border: none !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4) !important;
+}
+
+.holo-modal-card.red-theme .confirm-btn:hover {
+  background: linear-gradient(135deg, #f87171, #dc2626) !important;
+  box-shadow: 0 0 18px rgba(248, 113, 113, 0.7) !important;
+}
+
+.holo-modal-card.red-theme .cancel-btn {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+  color: #ffcccc !important;
+}
+
+.holo-modal-card.red-theme .cancel-btn:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #ffffff !important;
+}
