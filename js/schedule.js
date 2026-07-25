@@ -17,6 +17,10 @@ function saveSchedules(schedules) {
   localStorage.setItem('my_schedules', JSON.stringify(schedules));
 }
 
+
+
+
+
 // 대시보드 메인 목록 렌더링
 function renderSchedules() {
   const schedules = loadSchedules();
@@ -31,20 +35,50 @@ function renderSchedules() {
   }
 
   schedules.forEach((item) => {
+    const isMemo = item.type === 'memo';
     // MM-DD 포맷 변환 (선택 사항)
     const displayDate = item.date.length > 5 ? item.date.slice(5) : item.date;
 
     const div = document.createElement('div');
-    div.className = 'schedule-item';
+    div.className = isMemo ? 'schedule-item memo-item' : 'schedule-item';
+
+    // 메모 항목은 날짜/시간 표시하지 않음
+    const metaHtml = isMemo
+      ? ''
+      : `<span class="schedule-meta">${displayDate} &nbsp; ${item.time}</span>`;
+
     div.innerHTML = `
       <div class="schedule-info">
-        <span class="schedule-meta">${displayDate} &nbsp; ${item.time}</span>
+        ${metaHtml}
         <span class="schedule-title">${item.title}</span>
       </div>
       <button class="btn-delete" onclick="deleteSchedule(${item.id})">삭제</button>
     `;
     listContainer.appendChild(div);
   });
+}
+
+
+// 4번 테이블 '빠른 메모' 입력값을 3번 테이블(오늘 일정) 맨 하단에 초록색 항목으로 추가
+function addMemoSchedule(text) {
+  const trimmed = (text || '').trim();
+  if (!trimmed) return;
+
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+  const schedules = loadSchedules();
+  schedules.push({
+    id: Date.now(),
+    date: dateStr,
+    time: timeStr,
+    title: trimmed,
+    type: 'memo'
+  });
+  saveSchedules(schedules);
+  renderSchedules();
 }
 
 // 일정 삭제
