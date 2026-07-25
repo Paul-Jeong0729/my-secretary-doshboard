@@ -1,45 +1,88 @@
 .table-4 {
   width: 300px;
   flex-shrink: 0;
-  height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
-/* 시스템 정보 제목 글자색 변경 */
+/* 제목: 테이블 중앙 정렬 (다른 테이블의 header-flex 레이아웃에는 영향 없음) */
+.table-4 .header-flex {
+  justify-content: center;
+}
+
+/* 제목 크기는 기존과 동일(1.5rem), 폰트/색 동일 */
 .table-4 h2 {
   color: var(--accent-color);
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.5rem;
 }
 
-.system-info-content {
-  background: #0f172a;
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  color: var(--sub-text);
-  flex: 1;
+/* 구역 / 전도 / 심방 / 말씀 메뉴 - 세로 한 줄씩, 사무적인 리스트 스타일 */
+.dept-menu {
   display: flex;
   flex-direction: column;
-  margin-top: 15px;
+  gap: 2px;
+  margin-top: 16px;
 }
 
-.system-info-content hr {
+.dept-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--accent-color);
+  font-size: 1.1rem; /* 기존 1.5rem에서 2단계 축소 */
+  font-weight: bold;
+  font-family: inherit;
+  text-decoration: none;
+  padding: 10px 8px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.dept-menu-item:hover {
+  background: rgba(148, 163, 184, 0.12);
+}
+
+/* 말씀 메뉴 밑 구분선 */
+.dept-divider {
   border: none;
   border-top: 1px solid var(--border-color);
-  margin: 10px 0;
+  margin: 16px 0 14px;
 }
 
+.quick-memo-label {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: var(--sub-text);
+}
+
+/* 빠른 메모: 메모지(노트) 모양 */
 #quick-memo {
   width: 100%;
   flex: 1;
-  min-height: 100px;
-  background: #1e293b;
-  color: #fff;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  padding: 6px;
+  min-height: 70px;
+  background-color: #fdf6e3;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 22px,
+    rgba(120, 100, 40, 0.15) 23px
+  );
+  background-position: 0 4px;
+  color: #4a3f22;
+  border: none;
+  border-radius: 3px 3px 8px 8px;
+  border-top: 3px solid var(--accent-color);
+  padding: 12px 12px 10px;
+  line-height: 23px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
   resize: none;
-  margin-top: 5px;
+}
+
+#quick-memo::placeholder {
+  color: rgba(74, 63, 34, 0.55);
 }
