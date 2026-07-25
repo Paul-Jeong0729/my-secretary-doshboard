@@ -7,6 +7,9 @@ const defaultSchedules = [
   { id: 1, date: '2026-07-20', time: '09:30 AM', title: '대전 사업소 주간 업무 보고' }
 ];
 
+// 삭제 대기 중인 id 임시 저장
+let pendingDeleteId = null;
+
 // LocalStorage 로드/저장 키 통일 ('my_schedules')
 function loadSchedules() {
   const saved = localStorage.getItem('my_schedules');
@@ -16,10 +19,6 @@ function loadSchedules() {
 function saveSchedules(schedules) {
   localStorage.setItem('my_schedules', JSON.stringify(schedules));
 }
-
-
-
-
 
 // 대시보드 메인 목록 렌더링
 function renderSchedules() {
@@ -36,13 +35,11 @@ function renderSchedules() {
 
   schedules.forEach((item) => {
     const isMemo = item.type === 'memo';
-    // MM-DD 포맷 변환 (선택 사항)
     const displayDate = item.date.length > 5 ? item.date.slice(5) : item.date;
 
     const div = document.createElement('div');
     div.className = isMemo ? 'schedule-item memo-item' : 'schedule-item';
 
-    // 메모 항목은 날짜/시간 표시하지 않음
     const metaHtml = isMemo
       ? ''
       : `<span class="schedule-meta">${displayDate} &nbsp; ${item.time}</span>`;
@@ -57,7 +54,6 @@ function renderSchedules() {
     listContainer.appendChild(div);
   });
 }
-
 
 // 4번 테이블 '빠른 메모' 입력값을 3번 테이블(오늘 일정) 맨 하단에 초록색 항목으로 추가
 function addMemoSchedule(text) {
@@ -81,30 +77,47 @@ function addMemoSchedule(text) {
   renderSchedules();
 }
 
-// 일정 삭제
+// 일정 삭제 (커스텀 모달로 확인)
 function deleteSchedule(id) {
-  if (!confirm("이 일정을 삭제하시겠습니까?")) return;
-  
-  let schedules = loadSchedules();
-  schedules = schedules.filter(item => item.id !== id);
-  saveSchedules(schedules);
-  renderSchedules();
+  pendingDeleteId = id;
+  const modal = document.getElementById('deleteConfirmModal');
+  if (modal) modal.classList.remove('hidden');
 }
 
-// 모달 열기
+// 실제 삭제 처리 (삭제 확인 모달 - 삭제 버튼 클릭 시)
+function executeDeleteSchedule() {
+  if (pendingDeleteId === null) return;
+
+  let schedules = loadSchedules();
+  schedules = schedules.filter(item => item.id !== pendingDeleteId);
+  saveSchedules(schedules);
+  renderSchedules();
+
+  pendingDeleteId = null;
+  const modal = document.getElementById('deleteConfirmModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+// 삭제 취소 (삭제 확인 모달 - 취소 버튼 클릭 시)
+function cancelDeleteSchedule() {
+  pendingDeleteId = null;
+  const modal = document.getElementById('deleteConfirmModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+// 일정 추가 모달 열기
 function openScheduleModal() {
   const modal = document.getElementById('scheduleModal');
   if (modal) {
     modal.classList.remove('hidden');
-    
-    // 오늘 날짜 기본값 세팅
+
     const today = new Date().toISOString().split('T')[0];
     const dateInput = document.getElementById('schedDate');
     if (dateInput) dateInput.value = today;
   }
 }
 
-// 모달 닫기
+// 일정 추가 모달 닫기
 function closeScheduleModal() {
   const modal = document.getElementById('scheduleModal');
   if (modal) {
@@ -134,12 +147,10 @@ function handleScheduleSubmit(event) {
 
   schedules.push(newSchedule);
   saveSchedules(schedules);
-  
-  // 목록 리렌더링 및 모달 닫기
+
   renderSchedules();
   closeScheduleModal();
 
-  // 🔊 [비서 브리핑 & 음성 & 이미지 변경 연동]
   if (typeof announceNewSchedule === 'function') {
     announceNewSchedule(dateVal, timeVal, taskVal);
   }
@@ -155,4 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (addBtn) {
     addBtn.addEventListener('click', openScheduleModal);
   }
+
+  // 삭제 확인 모달 버튼 바인딩
+  const deleteYesBtn = document.getElementById('deleteConfirmYes');
+  const deleteNoBtn = document.getElementById('deleteConfirmNo');
+  if (deleteYesBtn) deleteYesBtn.addEventListener('click', executeDeleteSchedule);
+  if (deleteNoBtn) deleteNoBtn.addEventListener('click', cancelDeleteSchedule);
 });
