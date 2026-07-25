@@ -2,7 +2,8 @@
    [PART 1] 3번 테이블 (오늘 일정 Card) 오리지널 스타일
    ========================================== */
 .table-3 {
-  flex: 1 1 auto;
+  width: 310px;
+  flex-shrink: 0;
   min-width: 0;
   min-height: 0;
   display: flex;
