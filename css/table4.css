@@ -1,5 +1,5 @@
 .table-4 {
-  width: 310px;
+  width: 300px;
   flex-shrink: 0;
   min-height: 0;
   display: flex;
@@ -52,11 +52,42 @@
   margin: 16px 0 14px;
 }
 
+/* 빠른 메모 라벨 + 전달 버튼 헤더 줄 */
+.quick-memo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
 .quick-memo-label {
-  margin: 0 0 8px;
+  margin: 0;
   font-size: 0.85rem;
   color: var(--sub-text);
 }
+
+/* 전달 버튼 */
+/* 전달 버튼 (3번 테이블 일정 추가 버튼과 동일 스타일) */
+.btn-send-memo {
+  background-color: transparent;
+  color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-send-memo:hover {
+  background-color: var(--accent-color);
+  color: #000;
+}
+
 
 /* 빠른 메모: 메모지(노트) 모양 */
 #quick-memo {
