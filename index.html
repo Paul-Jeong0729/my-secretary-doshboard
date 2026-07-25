@@ -62,21 +62,23 @@
         <!-- 4번 테이블: 송촌1부 관리 -->
         <section class="card table-4">
           <div class="header-flex">
-            <h2>송촌1부 관리</h2>
+            <h2>⛪ 송촌1부 관리</h2>
           </div>
 
           <!-- 구역 / 전도 / 심방 / 말씀 메뉴 (클릭 시 새 창) -->
           <nav class="dept-menu">
-            <a href="구역.html" target="_blank" rel="noopener noreferrer" class="dept-menu-item">구역</a>
-            <a href="전도.html" target="_blank" rel="noopener noreferrer" class="dept-menu-item">전도</a>
-            <a href="심방.html" target="_blank" rel="noopener noreferrer" class="dept-menu-item">심방</a>
-            <a href="말씀.html" target="_blank" rel="noopener noreferrer" class="dept-menu-item">말씀</a>
+            <a href="구역.html" target="_blank" rel="noopener noreferrer" class="dept-menu-item">📍 구역</a>
+            <a href="전도.html" target="_blank" rel="noopener noreferrer" class="dept-menu-item">📣 전도</a>
+            <a href="심방.html" target="_blank" rel="noopener noreferrer" class="dept-menu-item">🏠 심방</a>
+            <a href="말씀.html" target="_blank" rel="noopener noreferrer" class="dept-menu-item">📖 말씀</a>
           </nav>
 
           <hr class="dept-divider">
-
-          <p class="quick-memo-label">📝 <strong>빠른 메모:</strong></p>
-          <textarea id="quick-memo" placeholder="메모를 입력하고 Enter를 누르면 오늘 일정에 추가됩니다..."></textarea>
+         <div class="quick-memo-header">
+  <p class="quick-memo-label">📝 <strong>빠른 메모:</strong></p>
+  <button type="button" class="btn-send-memo" id="btn-send-memo" title="메모 전달">전달</button>
+</div>
+<textarea id="quick-memo" placeholder="메모를 입력하고 전달 하시면 오늘 일정에 추가됩니다..."></textarea>
         </section>
       </div>
     </div>
