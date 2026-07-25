@@ -164,5 +164,22 @@
   <script src="js/schedule.js"></script>
   <script src="js/calendar.js"></script>
   <script src="js/main.js"></script>
+
+<!-- 🟥 삭제 확인 홀로그램 모달 -->
+  <div id="deleteConfirmModal" class="holo-modal-overlay hidden">
+    <div class="holo-modal-card red-theme">
+      <div class="holo-header">
+        <span class="holo-title">⚠️ DELETE CONFIRM</span>
+      </div>
+      <div class="delete-confirm-body">
+        <p id="deleteConfirmText">이 일정을 삭제하시겠습니까?</p>
+      </div>
+      <div class="holo-modal-footer">
+        <button type="button" class="holo-btn confirm-btn" id="deleteConfirmYes">삭제</button>
+        <button type="button" class="holo-btn cancel-btn" id="deleteConfirmNo">취소</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
