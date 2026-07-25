@@ -1,0 +1,639 @@
+전체 코드입니다. 아래 내용을 복사해서 구역.html 파일로 저장하시면 됩니다.
+
+html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>송촌1부 구역 조직도</title>
+<style>
+  :root{
+    --bg-color:#0f172a;
+    --card-bg:#1e293b;
+    --accent-color:#a3e635;
+    --blue:#bef264;
+    --title-color:#f59e0b;
+    --text-color:#f8fafc;
+    --sub-text:#94a3b8;
+    --border-color:#334155;
+    --line-color: rgba(163,230,53,0.55);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:
+      radial-gradient(ellipse at top, rgba(190,242,100,0.08), transparent 60%),
+      var(--bg-color);
+    color:var(--text-color);
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding:36px 20px 120px;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* ===== 헤더 ===== */
+  .page-header{
+    text-align:center;
+    margin-bottom:44px;
+  }
+  .page-header h1{
+    display:inline-block;
+    margin:0;
+    font-size:1.6rem;
+    font-weight:800;
+    color:var(--title-color);
+    letter-spacing:1px;
+    text-shadow:0 0 14px rgba(245,158,11,0.45);
+  }
+  .page-header p{
+    margin:8px 0 0;
+    color:var(--sub-text);
+    font-size:0.85rem;
+    letter-spacing:0.5px;
+  }
+
+  .chart-wrap{
+    max-width:1100px;
+    margin:0 auto;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  /* ===== 공통 노드 박스 ===== */
+  .node{
+    position:relative;
+    background:rgba(30,41,59,0.85);
+    border:1.5px solid var(--accent-color);
+    border-radius:10px;
+    padding:12px 22px;
+    text-align:center;
+    box-shadow:0 0 14px rgba(163,230,53,0.18), inset 0 0 10px rgba(163,230,53,0.08);
+    min-width:120px;
+  }
+  .node .role-label{
+    display:block;
+    font-size:0.7rem;
+    color:var(--blue);
+    font-weight:700;
+    letter-spacing:1px;
+    margin-bottom:4px;
+    text-transform:uppercase;
+  }
+  .node .name{
+    font-size:0.98rem;
+    font-weight:800;
+    color:var(--text-color);
+  }
+  .exec-node{ padding:16px 40px; }
+  .exec-node .name{ font-size:1.15rem; }
+
+  /* 편집 가능 텍스트 표시 */
+  .editable{
+    outline:none;
+    border-radius:4px;
+    padding:1px 4px;
+  }
+  body.editing .editable{
+    background:rgba(190,242,100,0.12);
+    box-shadow:0 0 0 1px rgba(190,242,100,0.5) inset;
+    cursor:text;
+  }
+
+  /* ===== 연결선 ===== */
+  .stem{
+    width:2px;
+    height:26px;
+    background:var(--line-color);
+  }
+
+  /* 2단: 전도팀장/심방팀장/서기 — 3형제 트리 커넥터 */
+  .tree-row{
+    display:flex;
+    justify-content:center;
+    position:relative;
+    padding-top:26px;
+    margin-bottom:0;
+  }
+  .tree-row .branch{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    position:relative;
+    padding:0 26px;
+  }
+  .tree-row .branch::before,
+  .tree-row .branch::after{
+    content:'';
+    position:absolute;
+    top:0;
+    width:50%;
+    height:26px;
+    border-top:2px solid var(--line-color);
+  }
+  .tree-row .branch::before{ right:50%; }
+  .tree-row .branch::after{ left:50%; }
+  .tree-row .branch:first-child::before{ border:none; }
+  .tree-row .branch:last-child::after{ border:none; }
+  .tree-row .branch:first-child::after{ border-radius:0 6px 0 0; }
+  .tree-row .branch:last-child::before{ border-radius:6px 0 0 0; }
+  .tree-row .branch:only-child::before,
+  .tree-row .branch:only-child::after{ display:none; }
+
+  /* 구역 카드 그리드 (제목 배지 제거, 여백만 유지) */
+  .zones-grid{
+    width:100%;
+    margin-top:32px;
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:16px;
+  }
+  @media (max-width: 900px){
+    .zones-grid{ grid-template-columns:repeat(3, 1fr); }
+  }
+  @media (max-width: 640px){
+    .zones-grid{ grid-template-columns:repeat(2, 1fr); }
+  }
+
+  .zone-card{
+    background:rgba(30,41,59,0.85);
+    border:1px solid var(--border-color);
+    border-top:3px solid var(--accent-color);
+    border-radius:10px;
+    padding:14px 14px 12px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.35);
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .zone-card .zone-num{
+    font-size:0.72rem;
+    color:var(--accent-color);
+    font-weight:800;
+    letter-spacing:1px;
+  }
+
+  .leaders-block{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    border-bottom:1px dashed var(--border-color);
+    padding-bottom:8px;
+  }
+  .leader-row{
+    display:flex;
+    align-items:baseline;
+    gap:6px;
+  }
+  .leader-row .leader-tag{
+    font-size:0.72rem;
+    color:var(--sub-text);
+    flex-shrink:0;
+    width:52px;
+  }
+  .leader-row .leader-name{
+    font-weight:800;
+    font-size:0.95rem;
+    color:var(--text-color);
+  }
+
+  .members-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .members-header .members-tag{
+    font-size:0.72rem;
+    color:var(--sub-text);
+    font-weight:700;
+  }
+  .add-member-btn{
+    display:none;
+    align-items:center;
+    gap:4px;
+    background:rgba(190,242,100,0.12);
+    border:1px solid var(--blue);
+    color:var(--blue);
+    font-size:0.7rem;
+    font-weight:700;
+    padding:3px 9px;
+    border-radius:12px;
+    cursor:pointer;
+    transition:0.2s;
+  }
+  .add-member-btn:hover{
+    background:var(--blue);
+    color:#000;
+  }
+  body.editing .add-member-btn{ display:inline-flex; }
+
+  .members{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px 10px;
+  }
+  .members .member{
+    font-size:0.82rem;
+    color:var(--sub-text);
+  }
+  body.editing .members .member{ color:var(--text-color); }
+
+  /* ===== 수정 버튼 ===== */
+  .edit-btn-wrap{
+    position:fixed;
+    left:0; right:0; bottom:26px;
+    display:flex;
+    justify-content:center;
+    pointer-events:none;
+  }
+  #editBtn{
+    pointer-events:auto;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:linear-gradient(135deg, #a3e635, #65a30d);
+    color:#fff;
+    border:none;
+    font-weight:800;
+    font-size:0.95rem;
+    letter-spacing:0.5px;
+    padding:13px 30px;
+    border-radius:30px;
+    cursor:pointer;
+    box-shadow:0 0 16px rgba(163,230,53,0.45), 0 4px 10px rgba(0,0,0,0.4);
+    transition:all 0.2s ease;
+  }
+  #editBtn:hover{
+    box-shadow:0 0 22px rgba(190,242,100,0.75), 0 4px 10px rgba(0,0,0,0.4);
+    transform:translateY(-1px);
+  }
+  #editBtn.save-mode{
+    background:linear-gradient(135deg, #bef264, #84cc16);
+    box-shadow:0 0 16px rgba(190,242,100,0.5), 0 4px 10px rgba(0,0,0,0.4);
+  }
+  #editBtn.save-mode:hover{
+    box-shadow:0 0 22px rgba(190,242,100,0.8), 0 4px 10px rgba(0,0,0,0.4);
+  }
+
+  .save-toast{
+    position:fixed;
+    left:50%;
+    bottom:90px;
+    transform:translateX(-50%) translateY(10px);
+    background:rgba(15,23,42,0.95);
+    border:1px solid var(--blue);
+    color:var(--blue);
+    font-size:0.82rem;
+    font-weight:700;
+    padding:8px 18px;
+    border-radius:20px;
+    opacity:0;
+    pointer-events:none;
+    transition:all 0.25s ease;
+  }
+  .save-toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+
+  /* ===== 인원수 설정 팝업 ===== */
+  .popup-overlay{
+    position:fixed;
+    top:0; left:0;
+    width:100vw; height:100vh;
+    background:rgba(5,10,20,0.7);
+    backdrop-filter:blur(6px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:9999;
+  }
+  .popup-overlay.hidden{ display:none; }
+  .popup-card{
+    width:300px;
+    max-width:88%;
+    background:rgba(15,23,42,0.95);
+    border:1.5px solid var(--blue);
+    border-radius:14px;
+    box-shadow:0 0 22px rgba(190,242,100,0.35), inset 0 0 12px rgba(190,242,100,0.1);
+    padding:22px 22px 18px;
+  }
+  .popup-title{
+    color:var(--blue);
+    font-weight:800;
+    font-size:1rem;
+    margin-bottom:14px;
+    text-shadow:0 0 8px rgba(190,242,100,0.5);
+  }
+  .popup-card input[type="number"]{
+    width:100%;
+    background:rgba(10,15,26,0.6);
+    border:1px solid var(--blue);
+    border-radius:8px;
+    color:var(--text-color);
+    font-size:1rem;
+    padding:10px 12px;
+    outline:none;
+    box-sizing:border-box;
+  }
+  .popup-card input[type="number"]:focus{
+    box-shadow:0 0 10px rgba(190,242,100,0.5);
+  }
+  .popup-actions{
+    display:flex;
+    gap:10px;
+    margin-top:18px;
+  }
+  .popup-actions button{
+    flex:1;
+    padding:10px 0;
+    border-radius:8px;
+    font-weight:800;
+    font-size:0.9rem;
+    cursor:pointer;
+    border:none;
+    transition:0.2s;
+  }
+  #countPopupConfirm{
+    background:linear-gradient(135deg, #bef264, #84cc16);
+    color:#fff;
+  }
+  #countPopupConfirm:hover{ box-shadow:0 0 14px rgba(190,242,100,0.7); }
+  #countPopupCancel{
+    background:rgba(255,255,255,0.06);
+    border:1px solid var(--border-color) !important;
+    color:var(--sub-text);
+  }
+  #countPopupCancel:hover{ color:var(--text-color); }
+
+  /* ===== 닫기 버튼 ===== */
+  .close-window-btn{
+    position:fixed;
+    top:18px;
+    right:22px;
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    background:rgba(30,41,59,0.85);
+    border:1.5px solid var(--accent-color);
+    color:var(--accent-color);
+    font-size:1.4rem;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    z-index:10000;
+    box-shadow:0 0 10px rgba(163,230,53,0.25);
+    transition:all 0.2s ease;
+  }
+  .close-window-btn:hover{
+    background:var(--accent-color);
+    color:#0f172a;
+    box-shadow:0 0 16px rgba(163,230,53,0.6);
+    transform:scale(1.05);
+  }
+</style>
+</head>
+<body>
+
+  <button type="button" id="closeWindowBtn" class="close-window-btn" title="창 닫기">&times;</button>
+
+  <div class="page-header">
+    <h1>🏛️ 송촌1부 구역 조직도</h1>
+    <p>이름을 입력하려면 하단 [수정] 버튼을 눌러주세요</p>
+  </div>
+
+  <div class="chart-wrap">
+
+    <!-- 1단: 임원 -->
+    <div class="node exec-node">
+      <span class="role-label">임원</span>
+      <span class="name editable" contenteditable="false" data-key="exec">임원 이름</span>
+    </div>
+
+    <div class="stem"></div>
+
+    <!-- 2단: 전도팀장 / 심방팀장 / 서기 -->
+    <div class="tree-row">
+      <div class="branch">
+        <div class="node">
+          <span class="role-label">전도팀장</span>
+          <span class="name editable" contenteditable="false" data-key="lead-evangelism">이름 입력</span>
+        </div>
+      </div>
+      <div class="branch">
+        <div class="node">
+          <span class="role-label">심방팀장</span>
+          <span class="name editable" contenteditable="false" data-key="lead-visitation">이름 입력</span>
+        </div>
+      </div>
+      <div class="branch">
+        <div class="node">
+          <span class="role-label">서기</span>
+          <span class="name editable" contenteditable="false" data-key="secretary">이름 입력</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stem"></div>
+
+    <!-- 3단: 1~12구역 -->
+    <div class="zones-grid" id="zonesGrid"></div>
+  </div>
+
+  <div class="edit-btn-wrap">
+    <button id="editBtn">✏️ 수정</button>
+  </div>
+  <div class="save-toast" id="saveToast">저장되었습니다</div>
+
+  <!-- 구역원 인원수 설정 팝업 -->
+  <div class="popup-overlay hidden" id="countPopupOverlay">
+    <div class="popup-card">
+      <div class="popup-title" id="countPopupTitle">구역원 수 입력</div>
+      <input type="number" id="countPopupInput" min="1" max="20" value="1" />
+      <div class="popup-actions">
+        <button type="button" id="countPopupConfirm">확인</button>
+        <button type="button" id="countPopupCancel">취소</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // 편집 모드 여부 (다른 함수들에서 참조하므로 최상단에서 먼저 선언)
+  let editing = false;
+
+  // 우측 상단 닫기 버튼
+  document.getElementById('closeWindowBtn').addEventListener('click', () => {
+    window.close();
+  });
+
+  // ---- 구역 카드 12개 동적 생성 (구역원은 처음엔 1칸) ----
+  const grid = document.getElementById('zonesGrid');
+  for (let i = 1; i <= 12; i++) {
+    const card = document.createElement('div');
+    card.className = 'zone-card';
+    card.innerHTML = `
+      <span class="zone-num">${i}구역</span>
+      <div class="leaders-block">
+        <div class="leader-row">
+          <span class="leader-tag">구역장</span>
+          <span class="leader-name editable" contenteditable="false" data-key="zone-${i}-leader">이름 입력</span>
+        </div>
+        <div class="leader-row">
+          <span class="leader-tag">부구역장</span>
+          <span class="leader-name editable" contenteditable="false" data-key="zone-${i}-subleader">이름 입력</span>
+        </div>
+      </div>
+      <div class="members-header">
+        <span class="members-tag">구역원</span>
+        <button type="button" class="add-member-btn" data-zone="${i}">인원수 설정</button>
+      </div>
+      <div class="members" id="members-${i}"></div>
+    `;
+    grid.appendChild(card);
+  }
+
+  const zoneMemberCounts = {};
+
+  function renderZoneMembers(zoneNum, count, values) {
+    const container = document.getElementById(`members-${zoneNum}`);
+    let html = '';
+    for (let idx = 1; idx <= count; idx++) {
+      const val = (values && values[idx]) ? values[idx] : '구역원';
+      html += `<span class="member editable" contenteditable="${editing ? 'true' : 'false'}" data-key="zone-${zoneNum}-member-${idx}">${val}</span>`;
+    }
+    container.innerHTML = html;
+    zoneMemberCounts[zoneNum] = count;
+  }
+
+  // 초기: 구역별 구역원 입력칸 1개씩
+  for (let i = 1; i <= 12; i++) {
+    renderZoneMembers(i, 1);
+  }
+
+  // 인원수 설정 버튼 → 자체 팝업창으로 숫자 입력받기
+  const countPopupOverlay = document.getElementById('countPopupOverlay');
+  const countPopupTitle = document.getElementById('countPopupTitle');
+  const countPopupInput = document.getElementById('countPopupInput');
+  const countPopupConfirm = document.getElementById('countPopupConfirm');
+  const countPopupCancel = document.getElementById('countPopupCancel');
+  let popupTargetZone = null;
+
+  function openCountPopup(zoneNum) {
+    popupTargetZone = zoneNum;
+    countPopupTitle.textContent = `${zoneNum}구역 구역원 수를 입력하세요`;
+    countPopupInput.value = zoneMemberCounts[zoneNum] || 1;
+    countPopupOverlay.classList.remove('hidden');
+    countPopupInput.focus();
+    countPopupInput.select();
+  }
+
+  function closeCountPopup() {
+    countPopupOverlay.classList.add('hidden');
+    popupTargetZone = null;
+  }
+
+  function applyCountPopup() {
+    if (popupTargetZone === null) return;
+    const zoneNum = popupTargetZone;
+
+    let count = parseInt(countPopupInput.value, 10);
+    if (isNaN(count) || count < 1) count = 1;
+    if (count > 20) count = 20;
+
+    // 기존에 입력된 이름은 최대한 보존
+    const existingValues = {};
+    document.querySelectorAll(`#members-${zoneNum} .member`).forEach((el, i) => {
+      existingValues[i + 1] = el.innerText.trim();
+    });
+
+    renderZoneMembers(zoneNum, count, existingValues);
+    closeCountPopup();
+  }
+
+  document.querySelectorAll('.add-member-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      openCountPopup(btn.dataset.zone);
+    });
+  });
+
+  countPopupConfirm.addEventListener('click', applyCountPopup);
+  countPopupCancel.addEventListener('click', closeCountPopup);
+  countPopupInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); applyCountPopup(); }
+    if (e.key === 'Escape') { e.preventDefault(); closeCountPopup(); }
+  });
+  countPopupOverlay.addEventListener('click', (e) => {
+    if (e.target === countPopupOverlay) closeCountPopup();
+  });
+
+  // ---- 저장 / 불러오기 ----
+  const STORAGE_KEY = 'zone_org_chart_data';
+
+  function saveData() {
+    const data = { __memberCounts: zoneMemberCounts };
+    document.querySelectorAll('.editable').forEach(el => {
+      data[el.dataset.key] = el.innerText.trim();
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function loadData() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+    try {
+      const data = JSON.parse(saved);
+
+      // 구역원 수 먼저 복원 후 값 채우기
+      if (data.__memberCounts) {
+        for (let i = 1; i <= 12; i++) {
+          const count = data.__memberCounts[i] || 1;
+          const values = {};
+          for (let idx = 1; idx <= count; idx++) {
+            const key = `zone-${i}-member-${idx}`;
+            if (data[key]) values[idx] = data[key];
+          }
+          renderZoneMembers(i, count, values);
+        }
+      }
+
+      document.querySelectorAll('.editable').forEach(el => {
+        if (el.classList.contains('member')) return; // 위에서 이미 처리됨
+        if (data[el.dataset.key]) el.innerText = data[el.dataset.key];
+      });
+    } catch (e) { /* 무시 */ }
+  }
+
+  // ---- 수정 버튼 토글 ----
+  const editBtn = document.getElementById('editBtn');
+  const toast = document.getElementById('saveToast');
+
+  editBtn.addEventListener('click', () => {
+    editing = !editing;
+    document.querySelectorAll('.editable').forEach(el => {
+      el.contentEditable = editing ? 'true' : 'false';
+    });
+    document.body.classList.toggle('editing', editing);
+
+    if (editing) {
+      editBtn.textContent = '💾 저장';
+      editBtn.classList.add('save-mode');
+    } else {
+      editBtn.textContent = '✏️ 수정';
+      editBtn.classList.remove('save-mode');
+      saveData();
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1600);
+    }
+  });
+
+  loadData();
+</script>
+</body>
+</html>
