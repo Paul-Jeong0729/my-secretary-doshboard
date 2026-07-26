@@ -1,23 +1,31 @@
 // ==========================================
 // 일정 관리 모듈 (js/schedule.js)
+// Firebase Firestore 실시간 동기화 버전
 // ==========================================
 
-// 기본 일정 데이터
-const defaultSchedules = [
-  { id: 1, date: '2026-07-20', time: '09:30 AM', title: '대전 사업소 주간 업무 보고' }
-];
+let currentSchedules = [];
+let scheduleSyncStarted = false;
 
-// 삭제 대기 중인 id 임시 저장
+// 삭제 대기 중인 문서 id 임시 저장
 let pendingDeleteId = null;
 
-// LocalStorage 로드/저장 키 통일 ('my_schedules')
-function loadSchedules() {
-  const saved = localStorage.getItem('my_schedules');
-  return saved ? JSON.parse(saved) : defaultSchedules;
+// Firestore 실시간 동기화 시작 (로그인 완료 후 1회 호출)
+function startScheduleSync() {
+  if (scheduleSyncStarted) return;
+  scheduleSyncStarted = true;
+
+  db.collection('schedules').orderBy('createdAt', 'asc')
+    .onSnapshot(snapshot => {
+      currentSchedules = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderSchedules();
+    }, err => {
+      console.error('일정 동기화 오류:', err);
+    });
 }
 
-function saveSchedules(schedules) {
-  localStorage.setItem('my_schedules', JSON.stringify(schedules));
+// calendar.js 등에서 동기적으로 참조하는 용도로 유지 (실시간 캐시 반환)
+function loadSchedules() {
+  return currentSchedules;
 }
 
 // 대시보드 메인 목록 렌더링
@@ -49,13 +57,13 @@ function renderSchedules() {
         ${metaHtml}
         <span class="schedule-title">${item.title}</span>
       </div>
-      <button class="btn-delete" onclick="deleteSchedule(${item.id})">삭제</button>
+      <button class="btn-delete" onclick="deleteSchedule('${item.id}')">삭제</button>
     `;
     listContainer.appendChild(div);
   });
 }
 
-// 4번 테이블 '빠른 메모' 입력값을 3번 테이블(오늘 일정) 맨 하단에 초록색 항목으로 추가
+// 4번 테이블 '빠른 메모' 입력값을 Firestore에 추가 (초록색 항목)
 function addMemoSchedule(text) {
   const trimmed = (text || '').trim();
   if (!trimmed) return;
@@ -65,16 +73,13 @@ function addMemoSchedule(text) {
   const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
-  const schedules = loadSchedules();
-  schedules.push({
-    id: Date.now(),
+  db.collection('schedules').add({
     date: dateStr,
     time: timeStr,
     title: trimmed,
-    type: 'memo'
-  });
-  saveSchedules(schedules);
-  renderSchedules();
+    type: 'memo',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(err => console.error('메모 저장 오류:', err));
 }
 
 // 일정 삭제 (커스텀 모달로 확인)
@@ -88,10 +93,8 @@ function deleteSchedule(id) {
 function executeDeleteSchedule() {
   if (pendingDeleteId === null) return;
 
-  let schedules = loadSchedules();
-  schedules = schedules.filter(item => item.id !== pendingDeleteId);
-  saveSchedules(schedules);
-  renderSchedules();
+  db.collection('schedules').doc(pendingDeleteId).delete()
+    .catch(err => console.error('삭제 오류:', err));
 
   pendingDeleteId = null;
   const modal = document.getElementById('deleteConfirmModal');
@@ -137,30 +140,21 @@ function handleScheduleSubmit(event) {
 
   if (!dateVal || !timeVal || !taskVal) return;
 
-  const schedules = loadSchedules();
-  const newSchedule = {
-    id: Date.now(),
+  db.collection('schedules').add({
     date: dateVal,
     time: timeVal,
-    title: taskVal
-  };
-
-  schedules.push(newSchedule);
-  saveSchedules(schedules);
-
-  renderSchedules();
-  closeScheduleModal();
-
-  if (typeof announceNewSchedule === 'function') {
-    announceNewSchedule(dateVal, timeVal, taskVal);
-  }
+    title: taskVal,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    closeScheduleModal();
+    if (typeof announceNewSchedule === 'function') {
+      announceNewSchedule(dateVal, timeVal, taskVal);
+    }
+  }).catch(err => console.error('일정 저장 오류:', err));
 }
 
 // 이벤트 초기화
 document.addEventListener('DOMContentLoaded', () => {
-  // 일정 목록 초기 렌더링
-  renderSchedules();
-
   // [일정 추가] 버튼 이벤트 바인딩
   const addBtn = document.getElementById('btn-add-schedule');
   if (addBtn) {
@@ -173,3 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (deleteYesBtn) deleteYesBtn.addEventListener('click', executeDeleteSchedule);
   if (deleteNoBtn) deleteNoBtn.addEventListener('click', cancelDeleteSchedule);
 });
+
+// 로그인 완료(authReady) 시 Firestore 실시간 동기화 시작
+window.addEventListener('authReady', startScheduleSync);

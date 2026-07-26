@@ -1,13 +1,25 @@
 window.addEventListener('DOMContentLoaded', () => {
-  renderSchedules();
-
   const memoTextarea = document.getElementById('quick-memo');
   const sendBtn = document.getElementById('btn-send-memo');
 
+  // Firestore에서 빠른 메모 내용 불러오기
+  function loadQuickMemo() {
+    db.collection('dashboard').doc('quickMemo').get().then(docSnap => {
+      if (memoTextarea && docSnap.exists) {
+        memoTextarea.value = docSnap.data().text || '';
+      }
+    }).catch(err => console.error('메모 불러오기 오류:', err));
+  }
+
+  // Firestore에 빠른 메모 내용 저장
+  function saveQuickMemo(text) {
+    db.collection('dashboard').doc('quickMemo').set({ text: text })
+      .catch(err => console.error('메모 저장 오류:', err));
+  }
+
   if (memoTextarea) {
-    memoTextarea.value = localStorage.getItem('quick_memo') || '';
     memoTextarea.addEventListener('input', (e) => {
-      localStorage.setItem('quick_memo', e.target.value);
+      saveQuickMemo(e.target.value);
     });
 
     memoTextarea.addEventListener('keydown', (e) => {
@@ -17,7 +29,7 @@ window.addEventListener('DOMContentLoaded', () => {
           addMemoSchedule(memoTextarea.value);
         }
         memoTextarea.value = '';
-        localStorage.removeItem('quick_memo');
+        saveQuickMemo('');
       }
     });
   }
@@ -29,7 +41,10 @@ window.addEventListener('DOMContentLoaded', () => {
         addMemoSchedule(memoTextarea.value);
       }
       memoTextarea.value = '';
-      localStorage.removeItem('quick_memo');
+      saveQuickMemo('');
     });
   }
+
+  // 로그인 완료(authReady) 후 저장된 메모 불러오기
+  window.addEventListener('authReady', loadQuickMemo);
 });
