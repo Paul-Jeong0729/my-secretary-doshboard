@@ -429,6 +429,7 @@
        ========================================== -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 
   <script>
     // ⚠️ 구역.html과 동일한 Firebase 프로젝트 설정값
@@ -444,6 +445,7 @@
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const db = firebase.firestore();
 
     // ==========================================
     // 🔐 로그인 / 가입 / 비밀번호 수정 모듈
@@ -648,6 +650,7 @@
         showOnlyOverlay(null);
         mainContentApp.classList.remove('main-content-hidden');
         logoutBtnWrap.classList.remove('main-content-hidden');
+        window.dispatchEvent(new Event('authReady'));
       } else {
         mainContentApp.classList.add('main-content-hidden');
         logoutBtnWrap.classList.add('main-content-hidden');
