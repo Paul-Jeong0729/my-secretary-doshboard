@@ -1,15 +1,14 @@
 // ==========================================
 // Firebase 설정 (js/firebase-config.js)
-// 아래 값을 Firebase 콘솔 > 프로젝트 설정 > 일반 > 내 앱(웹)에서
-// 복사한 값으로 반드시 교체하세요.
+// my-secretary-1df10 프로젝트 값 적용 완료
 // ==========================================
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBVXo5NYSyumJxYFFE2hrIaTEJiHIyq8P0",
+  authDomain: "my-secretary-1df10.firebaseapp.com",
+  projectId: "my-secretary-1df10",
+  storageBucket: "my-secretary-1df10.firebasestorage.app",
+  messagingSenderId: "165274759452",
+  appId: "1:165274759452:web:bbfa7de28a08f8e11b4ad9"
 };
 
 firebase.initializeApp(firebaseConfig);
