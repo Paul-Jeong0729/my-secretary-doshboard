@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>송촌1부 구역 조직도</title>
-<link rel="stylesheet" href="css/auth-gate.css">
 <style>
   :root{
     --bg-color:#0f172a;
@@ -32,9 +31,6 @@
     align-items:center;
     justify-content:center;
   }
-
-  /* 구역.html 전용 로그아웃 버튼 위치 보정 (우측 상단 닫기 버튼과 겹치지 않도록) */
-  .auth-logout-btn{ right:72px; }
 
   /* ===== 헤더 ===== */
   .page-header{
@@ -280,6 +276,10 @@
   #editBtn.save-mode:hover{
     box-shadow:0 0 22px rgba(190,242,100,0.8), 0 4px 10px rgba(0,0,0,0.4);
   }
+  #editBtn:disabled{
+    opacity:0.6;
+    cursor:not-allowed;
+  }
 
   .save-toast{
     position:fixed;
@@ -300,6 +300,35 @@
   .save-toast.show{
     opacity:1;
     transform:translateX(-50%) translateY(0);
+  }
+  .save-toast.error{
+    border-color:#ef4444;
+    color:#f87171;
+  }
+
+  /* ===== 로그아웃 버튼 ===== */
+  .logout-btn-wrap{
+    position:fixed;
+    left:22px;
+    bottom:26px;
+  }
+  #logoutBtn{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:rgba(255,255,255,0.06);
+    border:1px solid var(--border-color);
+    color:var(--sub-text);
+    font-weight:700;
+    font-size:0.82rem;
+    padding:9px 16px;
+    border-radius:20px;
+    cursor:pointer;
+    transition:0.2s;
+  }
+  #logoutBtn:hover{
+    color:var(--text-color);
+    border-color:var(--sub-text);
   }
 
   /* ===== 인원수 설정 팝업 ===== */
@@ -399,80 +428,551 @@
     box-shadow:0 0 16px rgba(163,230,53,0.6);
     transform:scale(1.05);
   }
+
+  /* ===== 메인 콘텐츠 로그인 전 숨김 ===== */
+  .main-content-hidden{
+    display:none !important;
+  }
+
+  /* ===== 로그인 / 가입 / 비밀번호 수정 오버레이 ===== */
+  .login-overlay{
+    position:fixed;
+    top:0; left:0;
+    width:100vw; height:100vh;
+    background:
+      radial-gradient(ellipse at top, rgba(190,242,100,0.08), transparent 60%),
+      rgba(5,10,20,0.92);
+    backdrop-filter:blur(8px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:20000;
+  }
+  .login-overlay.hidden{ display:none; }
+
+  .login-card{
+    width:340px;
+    max-width:90%;
+    background:rgba(15,23,42,0.95);
+    border:1.5px solid var(--accent-color);
+    border-radius:16px;
+    box-shadow:0 0 26px rgba(163,230,53,0.3), inset 0 0 14px rgba(163,230,53,0.08);
+    padding:28px 26px 24px;
+  }
+
+  .login-title{
+    margin:0 0 20px;
+    text-align:center;
+    font-size:1.15rem;
+    font-weight:800;
+    color:var(--title-color);
+    text-shadow:0 0 10px rgba(245,158,11,0.4);
+  }
+
+  .login-form-group{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-bottom:14px;
+  }
+  .login-form-group label{
+    font-size:0.78rem;
+    font-weight:700;
+    color:var(--sub-text);
+  }
+  .login-form-group input{
+    width:100%;
+    background:rgba(10,15,26,0.6);
+    border:1px solid var(--border-color);
+    border-radius:8px;
+    color:var(--text-color);
+    font-size:0.92rem;
+    padding:10px 12px;
+    outline:none;
+    box-sizing:border-box;
+    transition:0.2s;
+  }
+  .login-form-group input:focus{
+    border-color:var(--accent-color);
+    box-shadow:0 0 10px rgba(163,230,53,0.4);
+  }
+
+  .login-error{
+    color:#f87171;
+    font-size:0.78rem;
+    font-weight:700;
+    margin:-4px 0 14px;
+    line-height:1.4;
+  }
+  .login-error.hidden{ display:none; }
+
+  .login-info{
+    color:var(--blue);
+    font-size:0.78rem;
+    font-weight:700;
+    margin:-4px 0 14px;
+    line-height:1.4;
+  }
+  .login-info.hidden{ display:none; }
+
+  .login-submit-btn{
+    width:100%;
+    padding:11px 0;
+    border:none;
+    border-radius:8px;
+    background:linear-gradient(135deg, #a3e635, #65a30d);
+    color:#fff;
+    font-weight:800;
+    font-size:0.95rem;
+    cursor:pointer;
+    box-shadow:0 0 14px rgba(163,230,53,0.4);
+    transition:all 0.2s ease;
+  }
+  .login-submit-btn:hover{
+    box-shadow:0 0 20px rgba(190,242,100,0.7);
+    transform:translateY(-1px);
+  }
+  .login-submit-btn:disabled{
+    opacity:0.6;
+    cursor:not-allowed;
+    transform:none;
+  }
+
+  .login-cancel-btn{
+    width:100%;
+    margin-top:10px;
+    padding:11px 0;
+    border-radius:8px;
+    background:rgba(255,255,255,0.06);
+    border:1px solid var(--border-color);
+    color:var(--sub-text);
+    font-weight:700;
+    font-size:0.9rem;
+    cursor:pointer;
+    transition:0.2s;
+  }
+  .login-cancel-btn:hover{ color:var(--text-color); }
+
+  .login-links{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    margin-top:16px;
+  }
+  .login-link-btn{
+    background:none;
+    border:none;
+    color:var(--blue);
+    font-size:0.82rem;
+    font-weight:700;
+    cursor:pointer;
+    padding:2px 4px;
+  }
+  .login-link-btn:hover{
+    text-decoration:underline;
+  }
+  .login-link-divider{
+    color:var(--border-color);
+    font-size:0.8rem;
+  }
 </style>
 </head>
 <body>
 
   <button type="button" id="closeWindowBtn" class="close-window-btn" title="창 닫기">&times;</button>
 
-  <div class="page-header">
-    <h1>🏛️ 송촌1부 구역 조직도</h1>
-    <p>이름을 입력하려면 하단 [수정] 버튼을 눌러주세요</p>
-  </div>
-
-  <div class="chart-wrap">
-
-    <!-- 1단: 임원 -->
-    <div class="node exec-node">
-      <span class="role-label">임원</span>
-      <span class="name editable" contenteditable="false" data-key="exec">임원 이름</span>
-    </div>
-
-    <div class="stem"></div>
-
-    <!-- 2단: 전도팀장 / 심방팀장 / 서기 -->
-    <div class="tree-row">
-      <div class="branch">
-        <div class="node">
-          <span class="role-label">전도팀장</span>
-          <span class="name editable" contenteditable="false" data-key="lead-evangelism">이름 입력</span>
-        </div>
+  <!-- 🔐 로그인 오버레이 -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-card">
+      <h2 class="login-title">🔐 로그인</h2>
+      <div class="login-form-group">
+        <label for="loginEmail">이메일</label>
+        <input type="email" id="loginEmail" placeholder="이메일을 입력하세요" autocomplete="username" />
       </div>
-      <div class="branch">
-        <div class="node">
-          <span class="role-label">심방팀장</span>
-          <span class="name editable" contenteditable="false" data-key="lead-visitation">이름 입력</span>
-        </div>
+      <div class="login-form-group">
+        <label for="loginPassword">비밀번호</label>
+        <input type="password" id="loginPassword" placeholder="비밀번호를 입력하세요" autocomplete="current-password" />
       </div>
-      <div class="branch">
-        <div class="node">
-          <span class="role-label">서기</span>
-          <span class="name editable" contenteditable="false" data-key="secretary">이름 입력</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="stem"></div>
-
-    <!-- 3단: 1~12구역 -->
-    <div class="zones-grid" id="zonesGrid"></div>
-  </div>
-
-  <div class="edit-btn-wrap">
-    <button id="editBtn">✏️ 수정</button>
-  </div>
-  <div class="save-toast" id="saveToast">저장되었습니다</div>
-
-  <!-- 구역원 인원수 설정 팝업 -->
-  <div class="popup-overlay hidden" id="countPopupOverlay">
-    <div class="popup-card">
-      <div class="popup-title" id="countPopupTitle">구역원 수 입력</div>
-      <input type="number" id="countPopupInput" min="1" max="20" value="1" />
-      <div class="popup-actions">
-        <button type="button" id="countPopupConfirm">확인</button>
-        <button type="button" id="countPopupCancel">취소</button>
+      <div class="login-error hidden" id="loginError"></div>
+      <button type="button" class="login-submit-btn" id="loginSubmitBtn">로그인</button>
+      <div class="login-links">
+        <button type="button" class="login-link-btn" id="showSignupBtn">가입</button>
+        <span class="login-link-divider">|</span>
+        <button type="button" class="login-link-btn" id="showResetBtn">비밀번호 수정</button>
       </div>
     </div>
   </div>
 
-  <!-- 🔥 Firebase SDK (compat 버전) -->
+  <!-- 📝 가입 오버레이 -->
+  <div class="login-overlay hidden" id="signupOverlay">
+    <div class="login-card">
+      <h2 class="login-title">📝 신규 가입</h2>
+      <div class="login-form-group">
+        <label for="signupEmail">이메일</label>
+        <input type="email" id="signupEmail" placeholder="이메일을 입력하세요" autocomplete="username" />
+      </div>
+      <div class="login-form-group">
+        <label for="signupPassword">비밀번호 (6자리 이상)</label>
+        <input type="password" id="signupPassword" placeholder="비밀번호를 입력하세요" autocomplete="new-password" />
+      </div>
+      <div class="login-form-group">
+        <label for="signupPasswordConfirm">비밀번호 확인</label>
+        <input type="password" id="signupPasswordConfirm" placeholder="비밀번호를 다시 입력하세요" autocomplete="new-password" />
+      </div>
+      <div class="login-error hidden" id="signupError"></div>
+      <button type="button" class="login-submit-btn" id="signupSubmitBtn">가입하기</button>
+      <button type="button" class="login-cancel-btn" id="signupCancelBtn">취소</button>
+    </div>
+  </div>
+
+  <!-- 🔑 비밀번호 수정 오버레이 -->
+  <div class="login-overlay hidden" id="resetOverlay">
+    <div class="login-card">
+      <h2 class="login-title">🔑 비밀번호 수정</h2>
+      <div class="login-form-group">
+        <label for="resetEmail">이메일</label>
+        <input type="email" id="resetEmail" placeholder="가입한 이메일을 입력하세요" autocomplete="username" />
+      </div>
+      <div class="login-form-group">
+        <label for="resetCurrentPassword">현재 비밀번호</label>
+        <input type="password" id="resetCurrentPassword" placeholder="현재 비밀번호를 입력하세요" autocomplete="current-password" />
+      </div>
+      <div class="login-form-group">
+        <label for="resetNewPassword">새 비밀번호 (6자리 이상)</label>
+        <input type="password" id="resetNewPassword" placeholder="새 비밀번호를 입력하세요" autocomplete="new-password" />
+      </div>
+      <div class="login-error hidden" id="resetError"></div>
+      <button type="button" class="login-submit-btn" id="resetSubmitBtn">변경하기</button>
+      <button type="button" class="login-cancel-btn" id="resetCancelBtn">취소</button>
+    </div>
+  </div>
+
+  <!-- ===== 로그인 후에만 보이는 메인 콘텐츠 ===== -->
+  <div id="mainContent" class="main-content-hidden">
+
+    <div class="page-header">
+      <h1>🏛️ 송촌1부 구역 조직도</h1>
+      <p>이름을 입력하려면 하단 [수정] 버튼을 눌러주세요</p>
+    </div>
+
+    <div class="chart-wrap">
+
+      <!-- 1단: 임원 -->
+      <div class="node exec-node">
+        <span class="role-label">임원</span>
+        <span class="name editable" contenteditable="false" data-key="exec">임원 이름</span>
+      </div>
+
+      <div class="stem"></div>
+
+      <!-- 2단: 전도팀장 / 심방팀장 / 서기 -->
+      <div class="tree-row">
+        <div class="branch">
+          <div class="node">
+            <span class="role-label">전도팀장</span>
+            <span class="name editable" contenteditable="false" data-key="lead-evangelism">이름 입력</span>
+          </div>
+        </div>
+        <div class="branch">
+          <div class="node">
+            <span class="role-label">심방팀장</span>
+            <span class="name editable" contenteditable="false" data-key="lead-visitation">이름 입력</span>
+          </div>
+        </div>
+        <div class="branch">
+          <div class="node">
+            <span class="role-label">서기</span>
+            <span class="name editable" contenteditable="false" data-key="secretary">이름 입력</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stem"></div>
+
+      <!-- 3단: 1~12구역 -->
+      <div class="zones-grid" id="zonesGrid"></div>
+    </div>
+
+    <div class="edit-btn-wrap">
+      <button id="editBtn">✏️ 수정</button>
+    </div>
+    <div class="logout-btn-wrap">
+      <button type="button" id="logoutBtn">🚪 로그아웃</button>
+    </div>
+    <div class="save-toast" id="saveToast">저장되었습니다</div>
+
+    <!-- 구역원 인원수 설정 팝업 -->
+    <div class="popup-overlay hidden" id="countPopupOverlay">
+      <div class="popup-card">
+        <div class="popup-title" id="countPopupTitle">구역원 수 입력</div>
+        <input type="number" id="countPopupInput" min="1" max="20" value="1" />
+        <div class="popup-actions">
+          <button type="button" id="countPopupConfirm">확인</button>
+          <button type="button" id="countPopupCancel">취소</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==========================================
+       🔥 Firebase SDK (compat 버전 - 빌드 도구 없이 사용 가능)
+       ========================================== -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="js/firebase-config.js"></script>
-  <script src="js/auth-gate.js"></script>
 
 <script>
+  // ==========================================
+  // ⚠️ Firebase 설정 - Firebase 콘솔에서 프로젝트 생성 후
+  //    "프로젝트 설정 > 일반 > 내 앱"에서 복사한 값으로 교체하세요.
+  //
+  //    설정 절차 요약:
+  //    1) https://console.firebase.google.com 에서 새 프로젝트 생성
+  //    2) Authentication > Sign-in method > 이메일/비밀번호 사용 설정
+  //    3) Firestore Database 생성 (프로덕션 모드 권장, 위치는 asia-northeast3(서울))
+  //    4) Firestore 보안 규칙에서 로그인한 사용자만 읽기/쓰기 가능하도록 설정
+  //       예)
+  //       rules_version = '2';
+  //       service cloud.firestore {
+  //         match /databases/{database}/documents {
+  //           match /orgChart/{docId} {
+  //             allow read, write: if request.auth != null;
+  //           }
+  //         }
+  //       }
+  //    5) 아래 firebaseConfig 값을 실제 값으로 교체
+  //    6) jeongyk0729@gmail.com 계정은 아래 [가입] 버튼으로 직접 만들거나
+  //       Firebase 콘솔 > Authentication > Users 에서 수동으로 추가
+  //    7) file:// 로 열면 일부 기능이 제한될 수 있으니 Vercel 등 실제
+  //       웹 서버 주소로 접속해서 사용하세요.
+  // ==========================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyBVXo5NYSyumJxYFFE2hrIaTEJiHIyq8P0",
+    authDomain: "my-secretary-1df10.firebaseapp.com",
+    projectId: "my-secretary-1df10",
+    storageBucket: "my-secretary-1df10.firebasestorage.app",
+    messagingSenderId: "165274759452",
+    appId: "1:165274759452:web:bbfa7de28a08f8e11b4ad9",
+    measurementId: "G-TVB8JR7B3W"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // ==========================================
+  // 🔐 로그인 / 가입 / 비밀번호 수정 모듈 (Firebase Authentication)
+  // ==========================================
+  const loginOverlay = document.getElementById('loginOverlay');
+  const signupOverlay = document.getElementById('signupOverlay');
+  const resetOverlay = document.getElementById('resetOverlay');
+  const mainContent = document.getElementById('mainContent');
+
+  function showOnlyOverlay(target) {
+    [loginOverlay, signupOverlay, resetOverlay].forEach(o => o.classList.add('hidden'));
+    if (target) target.classList.remove('hidden');
+  }
+
+  function clearError(el) {
+    el.classList.add('hidden');
+    el.textContent = '';
+  }
+
+  function showError(el, message) {
+    el.textContent = message;
+    el.classList.remove('hidden');
+  }
+
+  // Firebase 에러 코드를 한국어 메시지로 변환
+  function mapFirebaseError(err) {
+    const code = err && err.code ? err.code : '';
+    switch (code) {
+      case 'auth/invalid-email':
+        return '올바른 이메일 형식이 아닙니다.';
+      case 'auth/user-not-found':
+        return '가입되지 않은 이메일입니다.';
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential':
+        return '이메일 또는 비밀번호가 올바르지 않습니다.';
+      case 'auth/email-already-in-use':
+        return '이미 가입된 이메일입니다.';
+      case 'auth/weak-password':
+        return '비밀번호는 6자리 이상이어야 합니다.';
+      case 'auth/too-many-requests':
+        return '너무 많은 시도가 있었습니다. 잠시 후 다시 시도해주세요.';
+      case 'auth/network-request-failed':
+        return '네트워크 연결을 확인해주세요.';
+      case 'auth/api-key-not-valid':
+      case 'auth/invalid-api-key':
+        return 'Firebase 설정값(firebaseConfig)이 아직 교체되지 않았습니다.';
+      default:
+        return '오류가 발생했습니다: ' + (err && err.message ? err.message : code);
+    }
+  }
+
+  // ---- 로그인 처리 ----
+  const loginEmailInput = document.getElementById('loginEmail');
+  const loginPasswordInput = document.getElementById('loginPassword');
+  const loginError = document.getElementById('loginError');
+  const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+
+  function attemptLogin() {
+    const email = loginEmailInput.value.trim();
+    const pw = loginPasswordInput.value;
+
+    if (!email || !pw) {
+      showError(loginError, '이메일과 비밀번호를 입력해주세요.');
+      return;
+    }
+
+    clearError(loginError);
+    loginSubmitBtn.disabled = true;
+
+    auth.signInWithEmailAndPassword(email, pw)
+      .then(() => {
+        loginPasswordInput.value = '';
+      })
+      .catch(err => {
+        showError(loginError, mapFirebaseError(err));
+      })
+      .finally(() => {
+        loginSubmitBtn.disabled = false;
+      });
+  }
+
+  loginSubmitBtn.addEventListener('click', attemptLogin);
+  [loginEmailInput, loginPasswordInput].forEach(input => {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); attemptLogin(); }
+    });
+  });
+
+  // ---- 화면 전환 ----
+  document.getElementById('showSignupBtn').addEventListener('click', () => {
+    clearError(document.getElementById('signupError'));
+    showOnlyOverlay(signupOverlay);
+  });
+  document.getElementById('showResetBtn').addEventListener('click', () => {
+    clearError(document.getElementById('resetError'));
+    showOnlyOverlay(resetOverlay);
+  });
+  document.getElementById('signupCancelBtn').addEventListener('click', () => {
+    showOnlyOverlay(loginOverlay);
+  });
+  document.getElementById('resetCancelBtn').addEventListener('click', () => {
+    showOnlyOverlay(loginOverlay);
+  });
+
+  // ---- 신규 가입 처리 ----
+  const signupEmailInput = document.getElementById('signupEmail');
+  const signupPasswordInput = document.getElementById('signupPassword');
+  const signupPasswordConfirmInput = document.getElementById('signupPasswordConfirm');
+  const signupError = document.getElementById('signupError');
+  const signupSubmitBtn = document.getElementById('signupSubmitBtn');
+
+  function attemptSignup() {
+    const email = signupEmailInput.value.trim();
+    const pw = signupPasswordInput.value;
+    const pwConfirm = signupPasswordConfirmInput.value;
+
+    if (!email || !pw) {
+      showError(signupError, '이메일과 비밀번호를 모두 입력해주세요.');
+      return;
+    }
+    if (pw !== pwConfirm) {
+      showError(signupError, '비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    clearError(signupError);
+    signupSubmitBtn.disabled = true;
+
+    // 가입 성공 시 Firebase가 자동으로 로그인 상태로 전환해줍니다.
+    auth.createUserWithEmailAndPassword(email, pw)
+      .then(() => {
+        signupEmailInput.value = '';
+        signupPasswordInput.value = '';
+        signupPasswordConfirmInput.value = '';
+      })
+      .catch(err => {
+        showError(signupError, mapFirebaseError(err));
+      })
+      .finally(() => {
+        signupSubmitBtn.disabled = false;
+      });
+  }
+
+  signupSubmitBtn.addEventListener('click', attemptSignup);
+  [signupEmailInput, signupPasswordInput, signupPasswordConfirmInput].forEach(input => {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); attemptSignup(); }
+    });
+  });
+
+  // ---- 비밀번호 수정 처리 (현재 비밀번호로 재인증 후 변경) ----
+  const resetEmailInput = document.getElementById('resetEmail');
+  const resetCurrentPasswordInput = document.getElementById('resetCurrentPassword');
+  const resetNewPasswordInput = document.getElementById('resetNewPassword');
+  const resetError = document.getElementById('resetError');
+  const resetSubmitBtn = document.getElementById('resetSubmitBtn');
+
+  function attemptReset() {
+    const email = resetEmailInput.value.trim();
+    const curPw = resetCurrentPasswordInput.value;
+    const newPw = resetNewPasswordInput.value;
+
+    if (!email || !curPw || !newPw) {
+      showError(resetError, '모든 항목을 입력해주세요.');
+      return;
+    }
+
+    clearError(resetError);
+    resetSubmitBtn.disabled = true;
+
+    // 현재 비밀번호로 로그인(=재인증) 후 새 비밀번호로 교체
+    auth.signInWithEmailAndPassword(email, curPw)
+      .then(cred => cred.user.updatePassword(newPw))
+      .then(() => {
+        resetEmailInput.value = '';
+        resetCurrentPasswordInput.value = '';
+        resetNewPasswordInput.value = '';
+        // 비밀번호 변경 후 그대로 로그인된 상태로 앱이 열립니다.
+      })
+      .catch(err => {
+        showError(resetError, mapFirebaseError(err));
+      })
+      .finally(() => {
+        resetSubmitBtn.disabled = false;
+      });
+  }
+
+  resetSubmitBtn.addEventListener('click', attemptReset);
+  [resetEmailInput, resetCurrentPasswordInput, resetNewPasswordInput].forEach(input => {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); attemptReset(); }
+    });
+  });
+
+  // ---- 로그아웃 ----
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    auth.signOut();
+  });
+
+  // ---- 로그인 상태에 따른 화면 전환 + Firestore 동기화 시작/중지 ----
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      showOnlyOverlay(null);
+      mainContent.classList.remove('main-content-hidden');
+      startOrgChartSync();
+    } else {
+      mainContent.classList.add('main-content-hidden');
+      showOnlyOverlay(loginOverlay);
+      stopOrgChartSync();
+    }
+  });
+
   // 편집 모드 여부 (다른 함수들에서 참조하므로 최상단에서 먼저 선언)
   let editing = false;
 
@@ -520,7 +1020,7 @@
     zoneMemberCounts[zoneNum] = count;
   }
 
-  // 초기: 구역별 구역원 입력칸 1개씩
+  // 초기: 구역별 구역원 입력칸 1개씩 (Firestore 데이터가 로드되면 덮어써짐)
   for (let i = 1; i <= 12; i++) {
     renderZoneMembers(i, 1);
   }
@@ -581,19 +1081,13 @@
     if (e.target === countPopupOverlay) closeCountPopup();
   });
 
-  // ---- 저장 / 불러오기 (Firebase Firestore) ----
+  // ==========================================
+  // ☁️ Firestore 실시간 저장 / 불러오기 (orgChart/main 문서)
+  // ==========================================
+  const orgDocRef = db.collection('orgChart').doc('main');
+  let unsubscribeOrgChart = null;
+  let suppressNextSnapshot = false;
 
-  // 편집 종료(저장) 시 Firestore에 기록
-  function saveData() {
-    const data = { __memberCounts: zoneMemberCounts };
-    document.querySelectorAll('.editable').forEach(el => {
-      data[el.dataset.key] = el.innerText.trim();
-    });
-    db.collection('orgChart').doc('main').set(data)
-      .catch(err => console.error('조직도 저장 오류:', err));
-  }
-
-  // Firestore에서 받은 데이터를 화면에 반영
   function applyOrgChartData(data) {
     if (!data) return;
 
@@ -616,19 +1110,54 @@
     });
   }
 
-  // 실시간 동기화 시작 (로그인 완료 후 1회 호출)
-  function startOrgChartSync() {
-    db.collection('orgChart').doc('main').onSnapshot(docSnap => {
-      if (editing) return; // 편집 중에는 원격 변경사항으로 덮어쓰지 않음
-      if (docSnap.exists) applyOrgChartData(docSnap.data());
-    }, err => console.error('조직도 동기화 오류:', err));
+  function saveOrgChartData() {
+    const data = { __memberCounts: zoneMemberCounts };
+    document.querySelectorAll('.editable').forEach(el => {
+      data[el.dataset.key] = el.innerText.trim();
+    });
+
+    suppressNextSnapshot = true;
+    return orgDocRef.set(data);
   }
 
-  window.addEventListener('authReady', startOrgChartSync);
+  function startOrgChartSync() {
+    if (unsubscribeOrgChart) return; // 이미 구독 중이면 중복 방지
+    unsubscribeOrgChart = orgDocRef.onSnapshot(
+      docSnap => {
+        if (suppressNextSnapshot) {
+          suppressNextSnapshot = false;
+          return;
+        }
+        // 편집 중일 때는 다른 기기의 변경사항으로 현재 입력값을 덮어쓰지 않음
+        if (editing) return;
+        if (docSnap.exists) {
+          applyOrgChartData(docSnap.data());
+        }
+      },
+      err => {
+        console.error('Firestore 동기화 오류:', err);
+        showToast('데이터 동기화에 실패했습니다.', true);
+      }
+    );
+  }
+
+  function stopOrgChartSync() {
+    if (unsubscribeOrgChart) {
+      unsubscribeOrgChart();
+      unsubscribeOrgChart = null;
+    }
+  }
 
   // ---- 수정 버튼 토글 ----
   const editBtn = document.getElementById('editBtn');
   const toast = document.getElementById('saveToast');
+
+  function showToast(message, isError) {
+    toast.textContent = message || '저장되었습니다';
+    toast.classList.toggle('error', !!isError);
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1600);
+  }
 
   editBtn.addEventListener('click', () => {
     editing = !editing;
@@ -643,9 +1172,17 @@
     } else {
       editBtn.textContent = '✏️ 수정';
       editBtn.classList.remove('save-mode');
-      saveData();
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 1600);
+      editBtn.disabled = true;
+
+      saveOrgChartData()
+        .then(() => showToast('저장되었습니다', false))
+        .catch(err => {
+          console.error('저장 실패:', err);
+          showToast('저장에 실패했습니다. 네트워크를 확인해주세요.', true);
+        })
+        .finally(() => {
+          editBtn.disabled = false;
+        });
     }
   });
 </script>
