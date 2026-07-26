@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>송촌1부 구역 조직도</title>
+<link rel="stylesheet" href="css/auth-gate.css">
 <style>
   :root{
     --bg-color:#0f172a;
@@ -31,6 +32,9 @@
     align-items:center;
     justify-content:center;
   }
+
+  /* 구역.html 전용 로그아웃 버튼 위치 보정 (우측 상단 닫기 버튼과 겹치지 않도록) */
+  .auth-logout-btn{ right:72px; }
 
   /* ===== 헤더 ===== */
   .page-header{
@@ -461,6 +465,13 @@
     </div>
   </div>
 
+  <!-- 🔥 Firebase SDK (compat 버전) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/auth-gate.js"></script>
+
 <script>
   // 편집 모드 여부 (다른 함수들에서 참조하므로 최상단에서 먼저 선언)
   let editing = false;
@@ -570,42 +581,50 @@
     if (e.target === countPopupOverlay) closeCountPopup();
   });
 
-  // ---- 저장 / 불러오기 ----
-  const STORAGE_KEY = 'zone_org_chart_data';
+  // ---- 저장 / 불러오기 (Firebase Firestore) ----
 
+  // 편집 종료(저장) 시 Firestore에 기록
   function saveData() {
     const data = { __memberCounts: zoneMemberCounts };
     document.querySelectorAll('.editable').forEach(el => {
       data[el.dataset.key] = el.innerText.trim();
     });
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    db.collection('orgChart').doc('main').set(data)
+      .catch(err => console.error('조직도 저장 오류:', err));
   }
 
-  function loadData() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return;
-    try {
-      const data = JSON.parse(saved);
+  // Firestore에서 받은 데이터를 화면에 반영
+  function applyOrgChartData(data) {
+    if (!data) return;
 
-      // 구역원 수 먼저 복원 후 값 채우기
-      if (data.__memberCounts) {
-        for (let i = 1; i <= 12; i++) {
-          const count = data.__memberCounts[i] || 1;
-          const values = {};
-          for (let idx = 1; idx <= count; idx++) {
-            const key = `zone-${i}-member-${idx}`;
-            if (data[key]) values[idx] = data[key];
-          }
-          renderZoneMembers(i, count, values);
+    // 구역원 수 먼저 복원 후 값 채우기
+    if (data.__memberCounts) {
+      for (let i = 1; i <= 12; i++) {
+        const count = data.__memberCounts[i] || 1;
+        const values = {};
+        for (let idx = 1; idx <= count; idx++) {
+          const key = `zone-${i}-member-${idx}`;
+          if (data[key]) values[idx] = data[key];
         }
+        renderZoneMembers(i, count, values);
       }
+    }
 
-      document.querySelectorAll('.editable').forEach(el => {
-        if (el.classList.contains('member')) return; // 위에서 이미 처리됨
-        if (data[el.dataset.key]) el.innerText = data[el.dataset.key];
-      });
-    } catch (e) { /* 무시 */ }
+    document.querySelectorAll('.editable').forEach(el => {
+      if (el.classList.contains('member')) return; // 위에서 이미 처리됨
+      if (data[el.dataset.key]) el.innerText = data[el.dataset.key];
+    });
   }
+
+  // 실시간 동기화 시작 (로그인 완료 후 1회 호출)
+  function startOrgChartSync() {
+    db.collection('orgChart').doc('main').onSnapshot(docSnap => {
+      if (editing) return; // 편집 중에는 원격 변경사항으로 덮어쓰지 않음
+      if (docSnap.exists) applyOrgChartData(docSnap.data());
+    }, err => console.error('조직도 동기화 오류:', err));
+  }
+
+  window.addEventListener('authReady', startOrgChartSync);
 
   // ---- 수정 버튼 토글 ----
   const editBtn = document.getElementById('editBtn');
@@ -629,8 +648,6 @@
       setTimeout(() => toast.classList.remove('show'), 1600);
     }
   });
-
-  loadData();
 </script>
 </body>
 </html>
