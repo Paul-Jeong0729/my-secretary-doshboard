@@ -17,10 +17,26 @@ function startScheduleSync() {
   db.collection('schedules').orderBy('createdAt', 'asc')
     .onSnapshot(snapshot => {
       currentSchedules = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      cleanupExpiredSchedules(currentSchedules);
       renderSchedules();
     }, err => {
       console.error('일정 동기화 오류:', err);
     });
+}
+
+// 오늘보다 이전 날짜인 "일반 일정"만 Firestore에서 자동 삭제 (메모는 제외)
+function cleanupExpiredSchedules(schedules) {
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+  schedules.forEach(item => {
+    if (item.type === 'memo') return; // 메모는 항상 보존
+    if (item.date && item.date < todayStr) {
+      db.collection('schedules').doc(item.id).delete()
+        .catch(err => console.error('만료 일정 자동 삭제 오류:', err));
+    }
+  });
 }
 
 // calendar.js 등에서 동기적으로 참조하는 용도로 유지 (실시간 캐시 반환)
