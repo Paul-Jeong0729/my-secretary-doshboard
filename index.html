@@ -189,11 +189,11 @@
       <h2 class="login-title">🔐 로그인</h2>
       <div class="login-form-group">
         <label for="loginEmail">이메일</label>
-        <input type="email" id="loginEmail" placeholder="이메일을 입력하세요" autocomplete="username" />
+        <input type="email" id="loginEmail" placeholder="이메일을 입력하세요" autocomplete="off" />
       </div>
       <div class="login-form-group">
         <label for="loginPassword">비밀번호</label>
-        <input type="password" id="loginPassword" placeholder="비밀번호를 입력하세요" autocomplete="current-password" />
+        <input type="password" id="loginPassword" placeholder="비밀번호를 입력하세요" autocomplete="new-password" />
       </div>
       <div class="login-error hidden" id="loginError"></div>
       <button type="button" class="login-submit-btn" id="loginSubmitBtn">로그인</button>
@@ -211,7 +211,7 @@
       <h2 class="login-title">📝 신규 가입</h2>
       <div class="login-form-group">
         <label for="signupEmail">이메일</label>
-        <input type="email" id="signupEmail" placeholder="이메일을 입력하세요" autocomplete="username" />
+        <input type="email" id="signupEmail" placeholder="이메일을 입력하세요" autocomplete="off" />
       </div>
       <div class="login-form-group">
         <label for="signupPassword">비밀번호 (6자리 이상)</label>
@@ -233,11 +233,11 @@
       <h2 class="login-title">🔑 비밀번호 수정</h2>
       <div class="login-form-group">
         <label for="resetEmail">이메일</label>
-        <input type="email" id="resetEmail" placeholder="가입한 이메일을 입력하세요" autocomplete="username" />
+        <input type="email" id="resetEmail" placeholder="가입한 이메일을 입력하세요" autocomplete="off" />
       </div>
       <div class="login-form-group">
         <label for="resetCurrentPassword">현재 비밀번호</label>
-        <input type="password" id="resetCurrentPassword" placeholder="현재 비밀번호를 입력하세요" autocomplete="current-password" />
+        <input type="password" id="resetCurrentPassword" placeholder="현재 비밀번호를 입력하세요" autocomplete="off" />
       </div>
       <div class="login-form-group">
         <label for="resetNewPassword">새 비밀번호 (6자리 이상)</label>
@@ -448,6 +448,16 @@
     const db = firebase.firestore();
 
     // ==========================================
+    // 🚫 자동 로그인 방지
+    // - persistence를 NONE으로 설정해 세션을 아예 저장하지 않고
+    // - 페이지가 열릴 때마다 혹시 남아있는 로그인 상태를 강제로 로그아웃시켜
+    //   링크에 들어올 때마다 항상 빈 로그인 화면부터 시작하게 합니다.
+    // ==========================================
+    auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
+      .then(() => auth.signOut())
+      .catch(err => console.error('Persistence 설정 오류:', err));
+
+    // ==========================================
     // 🔐 로그인 / 가입 / 비밀번호 수정 모듈
     // ==========================================
     const loginOverlay = document.getElementById('loginOverlay');
@@ -455,6 +465,17 @@
     const resetOverlay = document.getElementById('resetOverlay');
     const mainContentApp = document.getElementById('mainContentApp');
     const logoutBtnWrap = document.getElementById('logoutBtnWrap');
+
+    // 브라우저 자동완성으로 채워질 수 있는 입력값을 페이지 로드 직후 강제로 비웁니다.
+    function clearLoginInputs() {
+      ['loginEmail','loginPassword','signupEmail','signupPassword','signupPasswordConfirm',
+       'resetEmail','resetCurrentPassword','resetNewPassword'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+    }
+    window.addEventListener('load', () => { setTimeout(clearLoginInputs, 50); });
+    clearLoginInputs();
 
     function showOnlyOverlay(target) {
       [loginOverlay, signupOverlay, resetOverlay].forEach(o => o.classList.add('hidden'));
