@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>송촌1부 심방 관리</title>
+<style>
+  :root{
+    --bg-color:#0f172a;
+    --card-bg:#1e293b;
+    --accent-color:#a3e635;
+    --blue:#bef264;
+    --title-color:#f59e0b;
+    --text-color:#f8fafc;
+    --sub-text:#94a3b8;
+    --border-color:#334155;
+    --line-color: rgba(163,230,53,0.55);
+    --danger:#f87171;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:
+      radial-gradient(ellipse at top, rgba(190,242,100,0.08), transparent 60%),
+      var(--bg-color);
+    color:var(--text-color);
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding:32px 20px 120px;
+    min-height:100vh;
+  }
+
+  /* ===== 헤더 ===== */
+  .page-header{ text-align:center; margin-bottom:28px; }
+  .page-header h1{
+    display:inline-block; margin:0; font-size:1.5rem; font-weight:800;
+    color:var(--title-color); letter-spacing:1px;
+    text-shadow:0 0 14px rgba(245,158,11,0.45);
+  }
+  .page-header p{ margin:8px 0 0; color:var(--sub-text); font-size:0.85rem; }
+
+  .main-wrap{ max-width:1180px; margin:0 auto; }
+
+  /* ===== 상단 탭 ===== */
+  .stage-tabs{
+    display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
+    margin-bottom:26px;
+  }
+  .stage-tab{
+    background:rgba(30,41,59,0.85);
+    border:1.5px solid var(--border-color);
+    color:var(--sub-text);
+    font-weight:800; font-size:0.88rem;
+    padding:10px 20px; border-radius:22px;
+    cursor:pointer; transition:0.2s;
+    display:flex; align-items:center; gap:6px;
+  }
+  .stage-tab .count-badge{
+    background:rgba(163,230,53,0.15); color:var(--accent-color);
+    border-radius:10px; padding:1px 8px; font-size:0.75rem;
+  }
+  .stage-tab:hover{ border-color:var(--accent-color); color:var(--text-color); }
+  .stage-tab.active{
+    background:linear-gradient(135deg, rgba(163,230,53,0.18), rgba(101,163,13,0.12));
+    border-color:var(--accent-color); color:var(--text-color);
+    box-shadow:0 0 14px rgba(163,230,53,0.25);
+  }
+
+  /* ===== 섹션 패널 ===== */
+  .stage-panel{ display:none; }
+  .stage-panel.active{ display:block; animation:fadeIn 0.25s ease; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  .panel-toolbar{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:16px; gap:10px; flex-wrap:wrap;
+  }
+  .panel-title{ font-size:1.05rem; font-weight:800; color:var(--blue); }
+  .panel-actions{ display:flex; align-items:center; gap:10px; }
+
+  .create-btn{
+    background:linear-gradient(135deg, #a3e635, #65a30d);
+    color:#fff; border:none; font-weight:800; font-size:0.88rem;
+    padding:10px 20px; border-radius:20px; cursor:pointer;
+    box-shadow:0 0 12px rgba(163,230,53,0.35); transition:0.2s;
+  }
+  .create-btn:hover{ box-shadow:0 0 18px rgba(190,242,100,0.7); transform:translateY(-1px); }
+
+  /* ===== 레코드 카드 ===== */
+  .record-list{ display:flex; flex-direction:column; gap:14px; }
+  .record-card{
+    background:rgba(30,41,59,0.85);
+    border:1px solid var(--border-color);
+    border-left:3px solid var(--accent-color);
+    border-radius:10px;
+    padding:14px 16px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.3);
+  }
+  .record-row{
+    display:flex; align-items:center; gap:14px;
+    flex-wrap:nowrap; overflow-x:auto;
+    padding-bottom:0; margin-bottom:0;
+  }
+  .record-row.with-second-row{
+    padding-bottom:10px; margin-bottom:10px;
+    border-bottom:1px dashed var(--border-color);
+  }
+  .record-row::-webkit-scrollbar{ height:5px; }
+  .record-row::-webkit-scrollbar-thumb{ background:var(--border-color); border-radius:4px; }
+
+  .field-chip{ display:flex; flex-direction:column; gap:2px; min-width:70px; flex-shrink:0; }
+  .field-chip .f-label{ font-size:0.66rem; color:var(--sub-text); font-weight:700; letter-spacing:0.5px; }
+  .field-chip .f-value{ font-size:0.9rem; font-weight:700; color:var(--text-color); white-space:nowrap; }
+  .field-chip.num .f-value{ color:var(--accent-color); }
+  .field-chip.attend .f-value{ color:var(--blue); }
+  .field-chip.absent .f-value{ color:var(--danger); }
+  .field-chip.sarang-o .f-value{ color:var(--accent-color); }
+
+  .row-actions{ display:flex; gap:6px; flex-shrink:0; margin-left:auto; }
+  .row-actions button{
+    border:none; border-radius:8px; padding:8px 14px; font-size:0.78rem; font-weight:800;
+    cursor:pointer; transition:0.2s; white-space:nowrap;
+  }
+  .edit-mini-btn{ background:rgba(163,230,53,0.15); color:var(--accent-color); }
+  .edit-mini-btn:hover{ background:var(--accent-color); color:#0f172a; }
+  .delete-mini-btn{ background:rgba(248,113,113,0.15); color:var(--danger); }
+  .delete-mini-btn:hover{ background:var(--danger); color:#fff; }
+
+  .note-text{
+    font-size:0.85rem; color:var(--sub-text); line-height:1.5;
+    background:rgba(10,15,26,0.35); border-radius:8px; padding:8px 12px;
+    min-height:20px; white-space:pre-wrap;
+  }
+
+  .class-dates-row{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .class-dates-row .cd-label{ font-size:0.72rem; color:var(--sub-text); font-weight:700; flex-shrink:0; }
+  .class-dates-row .cd-chip{
+    background:rgba(163,230,53,0.12); color:var(--accent-color);
+    border-radius:10px; padding:3px 10px; font-size:0.78rem; font-weight:700;
+  }
+  .class-dates-row input[type="date"]{
+    background:rgba(10,15,26,0.6); border:1px solid var(--border-color);
+    border-radius:8px; color:var(--text-color); font-size:0.78rem; padding:5px 8px;
+  }
+  .class-dates-row .add-date-btn{
+    background:rgba(190,242,100,0.15); border:1px solid var(--blue); color:var(--blue);
+    font-size:0.76rem; font-weight:800; padding:5px 12px; border-radius:10px; cursor:pointer;
+  }
+  .class-dates-row .add-date-btn:hover{ background:var(--blue); color:#000; }
+
+  .empty-state{
+    text-align:center; color:var(--sub-text); font-size:0.88rem;
+    padding:40px 0;
+  }
+
+  /* ===== 입력/수정 모달 ===== */
+  .modal-overlay{
+    position:fixed; top:0; left:0; width:100vw; height:100vh;
+    background:rgba(5,10,20,0.72); backdrop-filter:blur(6px);
+    display:flex; align-items:center; justify-content:center; z-index:9999;
+  }
+  .modal-overlay.hidden{ display:none; }
+  .modal-card{
+    width:560px; max-width:92%; max-height:88vh; overflow-y:auto;
+    background:rgba(15,23,42,0.97); border:1.5px solid var(--blue);
+    border-radius:16px; padding:24px 26px 22px;
+    box-shadow:0 0 26px rgba(190,242,100,0.3);
+  }
+  .modal-title{
+    color:var(--blue); font-weight:800; font-size:1.05rem; margin-bottom:18px;
+    text-shadow:0 0 8px rgba(190,242,100,0.5);
+  }
+  .form-row-line{
+    display:flex; flex-wrap:wrap; gap:12px; margin-bottom:14px;
+  }
+  .form-group{ display:flex; flex-direction:column; gap:5px; flex:1; min-width:110px; }
+  .form-group label{ font-size:0.74rem; color:var(--sub-text); font-weight:700; }
+  .form-group input[type="text"],
+  .form-group input[type="number"],
+  .form-group input[type="date"],
+  .form-group select{
+    background:rgba(10,15,26,0.6); border:1px solid var(--border-color);
+    border-radius:8px; color:var(--text-color); font-size:0.85rem;
+    padding:8px 10px; outline:none;
+  }
+  .form-group input:focus, .form-group select:focus{
+    border-color:var(--accent-color); box-shadow:0 0 8px rgba(163,230,53,0.35);
+  }
+  .radio-group{ display:flex; gap:10px; align-items:center; padding-top:4px; }
+  .radio-group label{ display:flex; align-items:center; gap:4px; font-size:0.85rem; color:var(--text-color); font-weight:700; cursor:pointer; }
+
+  .form-group.full{ flex:1 1 100%; }
+  .form-group textarea{
+    background:rgba(10,15,26,0.6); border:1px solid var(--border-color);
+    border-radius:8px; color:var(--text-color); font-size:0.85rem;
+    padding:10px 12px; outline:none; resize:vertical; min-height:70px; font-family:inherit;
+  }
+  .form-group textarea:focus{ border-color:var(--accent-color); box-shadow:0 0 8px rgba(163,230,53,0.35); }
+
+  .modal-actions{ display:flex; gap:10px; margin-top:20px; }
+  .modal-actions button{
+    flex:1; padding:11px 0; border-radius:10px; font-weight:800; font-size:0.9rem;
+    cursor:pointer; border:none; transition:0.2s;
+  }
+  .modal-confirm-btn{ background:linear-gradient(135deg, #bef264, #84cc16); color:#fff; }
+  .modal-confirm-btn:hover{ box-shadow:0 0 14px rgba(190,242,100,0.7); }
+  .modal-cancel-btn{ background:rgba(255,255,255,0.06); border:1px solid var(--border-color) !important; color:var(--sub-text); }
+  .modal-cancel-btn:hover{ color:var(--text-color); }
+
+  /* ===== 확인(삭제) 모달 ===== */
+  .confirm-card{
+    width:320px; max-width:88%; background:rgba(15,23,42,0.97);
+    border:1.5px solid var(--danger); border-radius:14px; padding:22px;
+    box-shadow:0 0 22px rgba(248,113,113,0.3);
+  }
+  .confirm-card p{ font-size:0.9rem; margin:0 0 18px; color:var(--text-color); line-height:1.5; }
+  .confirm-actions{ display:flex; gap:10px; }
+  .confirm-actions button{ flex:1; padding:10px 0; border-radius:8px; font-weight:800; font-size:0.86rem; border:none; cursor:pointer; }
+  #confirmYesBtn{ background:var(--danger); color:#fff; }
+  #confirmYesBtn:hover{ box-shadow:0 0 12px rgba(248,113,113,0.6); }
+  #confirmNoBtn{ background:rgba(255,255,255,0.06); border:1px solid var(--border-color) !important; color:var(--sub-text); }
+
+  .save-toast{
+    position:fixed; left:50%; bottom:34px; transform:translateX(-50%) translateY(10px);
+    background:rgba(15,23,42,0.95); border:1px solid var(--blue); color:var(--blue);
+    font-size:0.82rem; font-weight:700; padding:8px 18px; border-radius:20px;
+    opacity:0; pointer-events:none; transition:all 0.25s ease; z-index:10001;
+  }
+  .save-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .save-toast.error{ border-color:#ef4444; color:#f87171; }
+
+  .close-window-btn{
+    position:fixed; top:18px; right:22px; width:38px; height:38px; border-radius:50%;
+    background:rgba(30,41,59,0.85); border:1.5px solid var(--accent-color);
+    color:var(--accent-color); font-size:1.4rem; line-height:1;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    z-index:10000; box-shadow:0 0 10px rgba(163,230,53,0.25); transition:all 0.2s ease;
+  }
+  .close-window-btn:hover{ background:var(--accent-color); color:#0f172a; box-shadow:0 0 16px rgba(163,230,53,0.6); transform:scale(1.05); }
+
+  .main-content-hidden{ display:none !important; }
+
+  /* ===== 로그인 오버레이 (구역.html / 전도.html과 동일) ===== */
+  .login-overlay{
+    position:fixed; top:0; left:0; width:100vw; height:100vh;
+    background: radial-gradient(ellipse at top, rgba(190,242,100,0.08), transparent 60%), rgba(5,10,20,0.92);
+    backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; z-index:20000;
+  }
+  .login-overlay.hidden{ display:none; }
+  .login-card{
+    width:340px; max-width:90%; background:rgba(15,23,42,0.95);
+    border:1.5px solid var(--accent-color); border-radius:16px;
+    box-shadow:0 0 26px rgba(163,230,53,0.3); padding:28px 26px 24px;
+  }
+  .login-title{ margin:0 0 20px; text-align:center; font-size:1.15rem; font-weight:800; color:var(--title-color); }
+  .login-form-group{ display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+  .login-form-group label{ font-size:0.78rem; font-weight:700; color:var(--sub-text); }
+  .login-form-group input{
+    width:100%; background:rgba(10,15,26,0.6); border:1px solid var(--border-color);
+    border-radius:8px; color:var(--text-color); font-size:0.92rem; padding:10px 12px; outline:none;
+  }
+  .login-form-group input:focus{ border-color:var(--accent-color); box-shadow:0 0 10px rgba(163,230,53,0.4); }
+  .login-error{ color:#f87171; font-size:0.78rem; font-weight:700; margin:-4px 0 14px; }
+  .login-error.hidden{ display:none; }
+  .login-submit-btn{
+    width:100%; padding:11px 0; border:none; border-radius:8px;
+    background:linear-gradient(135deg, #a3e635, #65a30d); color:#fff; font-weight:800; font-size:0.95rem; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+  <button type="button" id="closeWindowBtn" class="close-window-btn" title="창 닫기">&times;</button>
+
+  <!-- 로그인 오버레이 -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-card">
+      <h2 class="login-title">🔐 로그인</h2>
+      <div class="login-form-group">
+        <label for="loginEmail">이메일</label>
+        <input type="email" id="loginEmail" placeholder="이메일을 입력하세요" autocomplete="off" />
+      </div>
+      <div class="login-form-group">
+        <label for="loginPassword">비밀번호</label>
+        <input type="password" id="loginPassword" placeholder="비밀번호를 입력하세요" autocomplete="new-password" />
+      </div>
+      <div class="login-error hidden" id="loginError"></div>
+      <button type="button" class="login-submit-btn" id="loginSubmitBtn">로그인</button>
+    </div>
+  </div>
+
+  <div id="mainContent" class="main-content-hidden">
+    <div class="page-header">
+      <h1>🏠 송촌1부 심방 관리</h1>
+      <p>수요예배 결석 · 주일예배 결석 · 사랑방 · 심방</p>
+    </div>
+
+    <div class="main-wrap">
+      <div class="stage-tabs" id="stageTabs"></div>
+      <div id="stagePanels"></div>
+    </div>
+  </div>
+
+  <!-- 결석 입력/수정 모달 (수요예배 결석 / 주일예배 결석 공용) -->
+  <div class="modal-overlay hidden" id="absenceModalOverlay">
+    <div class="modal-card">
+      <div class="modal-title" id="absenceModalTitle">입력</div>
+      <div class="form-row-line">
+        <div class="form-group"><label>숫자 (구역)</label><input type="number" id="a_number" placeholder="예: 3"></div>
+        <div class="form-group"><label>이름</label><input type="text" id="a_name" placeholder="이름"></div>
+        <div class="form-group">
+          <label>사유</label>
+          <select id="a_reason">
+            <option value="사유출석">사유출석</option>
+            <option value="사유결석">사유결석</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>사랑방</label>
+          <div class="radio-group">
+            <label><input type="radio" name="a_sarang" value="O"> O</label>
+            <label><input type="radio" name="a_sarang" value="X"> X</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="modal-confirm-btn" id="absenceConfirmBtn">완료</button>
+        <button type="button" class="modal-cancel-btn" id="absenceCancelBtn">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 사랑방 입력/수정 모달 -->
+  <div class="modal-overlay hidden" id="sarangModalOverlay">
+    <div class="modal-card">
+      <div class="modal-title" id="sarangModalTitle">사랑방 입력</div>
+      <div class="form-row-line">
+        <div class="form-group"><label>숫자 (구역)</label><input type="number" id="s_number" placeholder="예: 3"></div>
+        <div class="form-group"><label>이름</label><input type="text" id="s_name" placeholder="이름"></div>
+      </div>
+      <div class="form-row-line">
+        <div class="form-group"><label>강사</label><input type="text" id="s_instructor" placeholder="강사"></div>
+        <div class="form-group"><label>전도사</label><input type="text" id="s_evangelist" placeholder="전도사"></div>
+        <div class="form-group"><label>인도자</label><input type="text" id="s_leader" placeholder="인도자"></div>
+      </div>
+      <div class="form-row-line">
+        <div class="form-group"><label>교사</label><input type="text" id="s_teacher" placeholder="교사"></div>
+        <div class="form-group"><label>인도자2</label><input type="text" id="s_leader2" placeholder="인도자2"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="modal-confirm-btn" id="sarangConfirmBtn">완료</button>
+        <button type="button" class="modal-cancel-btn" id="sarangCancelBtn">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 심방 입력/수정 모달 -->
+  <div class="modal-overlay hidden" id="visitModalOverlay">
+    <div class="modal-card">
+      <div class="modal-title" id="visitModalTitle">심방 입력</div>
+      <div class="form-row-line">
+        <div class="form-group"><label>숫자 (구역)</label><input type="number" id="v_number" placeholder="예: 3"></div>
+        <div class="form-group"><label>날짜</label><input type="date" id="v_date"></div>
+        <div class="form-group"><label>이름</label><input type="text" id="v_name" placeholder="이름"></div>
+        <div class="form-group"><label>심방자</label><input type="text" id="v_visitor" placeholder="심방자"></div>
+      </div>
+      <div class="form-row-line">
+        <div class="form-group full">
+          <label>심방 내용</label>
+          <textarea id="v_content" placeholder="심방 내용을 입력하세요"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="modal-confirm-btn" id="visitConfirmBtn">완료</button>
+        <button type="button" class="modal-cancel-btn" id="visitCancelBtn">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 삭제 확인 모달 -->
+  <div class="modal-overlay hidden" id="confirmModalOverlay">
+    <div class="confirm-card">
+      <p id="confirmMessage">정말 삭제하시겠습니까?</p>
+      <div class="confirm-actions">
+        <button type="button" id="confirmYesBtn">삭제</button>
+        <button type="button" id="confirmNoBtn">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="save-toast" id="saveToast">저장되었습니다</div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+  // ⚠️ 구역.html / 전도.html과 동일한 Firebase 프로젝트를 사용합니다.
+  const firebaseConfig = {
+    apiKey: "AIzaSyBVXo5NYSyumJxYFFE2hrIaTEJiHIyq8P0",
+    authDomain: "my-secretary-1df10.firebaseapp.com",
+    projectId: "my-secretary-1df10",
+    storageBucket: "my-secretary-1df10.firebasestorage.app",
+    messagingSenderId: "165274759452",
+    appId: "1:165274759452:web:bbfa7de28a08f8e11b4ad9",
+    measurementId: "G-TVB8JR7B3W"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // ==========================================
+  // 🚫 자동 로그인 방지
+  // ==========================================
+  auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
+    .then(() => auth.signOut())
+    .catch(err => console.error('Persistence 설정 오류:', err));
+
+  // ---- 로그인 ----
+  const loginOverlay = document.getElementById('loginOverlay');
+  function clearLoginInputs() {
+    ['loginEmail','loginPassword'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+  }
+  window.addEventListener('load', () => { setTimeout(clearLoginInputs, 50); });
+  clearLoginInputs();
+  const mainContent = document.getElementById('mainContent');
+  const loginEmailInput = document.getElementById('loginEmail');
+  const loginPasswordInput = document.getElementById('loginPassword');
+  const loginError = document.getElementById('loginError');
+  const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+
+  function mapFirebaseError(err){
+    const code = err && err.code ? err.code : '';
+    switch(code){
+      case 'auth/invalid-email': return '올바른 이메일 형식이 아닙니다.';
+      case 'auth/user-not-found': return '가입되지 않은 이메일입니다.';
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential': return '이메일 또는 비밀번호가 올바르지 않습니다.';
+      case 'auth/too-many-requests': return '너무 많은 시도가 있었습니다. 잠시 후 다시 시도해주세요.';
+      case 'auth/network-request-failed': return '네트워크 연결을 확인해주세요.';
+      case 'auth/api-key-not-valid':
+      case 'auth/invalid-api-key': return 'Firebase 설정값이 아직 교체되지 않았습니다.';
+      default: return '오류가 발생했습니다: ' + (err && err.message ? err.message : code);
+    }
+  }
+
+  function attemptLogin(){
+    const email = loginEmailInput.value.trim();
+    const pw = loginPasswordInput.value;
+    if(!email || !pw){ loginError.textContent='이메일과 비밀번호를 입력해주세요.'; loginError.classList.remove('hidden'); return; }
+    loginError.classList.add('hidden');
+    loginSubmitBtn.disabled = true;
+    auth.signInWithEmailAndPassword(email, pw)
+      .then(()=>{ loginPasswordInput.value=''; })
+      .catch(err=>{ loginError.textContent = mapFirebaseError(err); loginError.classList.remove('hidden'); })
+      .finally(()=>{ loginSubmitBtn.disabled = false; });
+  }
+  loginSubmitBtn.addEventListener('click', attemptLogin);
+  [loginEmailInput, loginPasswordInput].forEach(inp=>{
+    inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); attemptLogin(); } });
+  });
+
+  document.getElementById('closeWindowBtn').addEventListener('click', ()=> window.close());
+
+  auth.onAuthStateChanged(user=>{
+    if(user){
+      loginOverlay.classList.add('hidden');
+      mainContent.classList.remove('main-content-hidden');
+      initApp();
+    } else {
+      mainContent.classList.add('main-content-hidden');
+      loginOverlay.classList.remove('hidden');
+    }
+  });
+
+  // ==========================================
+  // 📋 4개 섹션 구성
+  // ==========================================
+  const SECTIONS = [
+    { id:'wed',    label:'수요예배 결석', collection:'visit_wed_absence',   type:'absence' },
+    { id:'sun',    label:'주일예배 결석', collection:'visit_sun_absence',   type:'absence' },
+    { id:'sarang', label:'사랑방',        collection:'visit_sarangbang',    type:'sarang'  },
+    { id:'visit',  label:'심방',          collection:'visit_record',        type:'visit'   }
+  ];
+
+  const sectionData = {};   // id -> array of {id, ...fields}
+  const sectionUnsub = {};  // id -> unsubscribe fn
+  let currentSectionId = 'wed';
+
+  // ---- 탭 / 패널 뼈대 생성 ----
+  const tabsWrap = document.getElementById('stageTabs');
+  const panelsWrap = document.getElementById('stagePanels');
+
+  SECTIONS.forEach(section=>{
+    const tab = document.createElement('button');
+    tab.type='button';
+    tab.className='stage-tab' + (section.id===currentSectionId ? ' active' : '');
+    tab.dataset.section = section.id;
+    tab.innerHTML = `${section.label} <span class="count-badge" id="count-${section.id}">0</span>`;
+    tab.addEventListener('click', ()=> switchSection(section.id));
+    tabsWrap.appendChild(tab);
+
+    const panel = document.createElement('div');
+    panel.className='stage-panel' + (section.id===currentSectionId ? ' active' : '');
+    panel.id = `panel-${section.id}`;
+    panel.innerHTML = `
+      <div class="panel-toolbar">
+        <div class="panel-title">${section.label}</div>
+        <div class="panel-actions">
+          <button type="button" class="create-btn" data-create-section="${section.id}">+ 입력</button>
+        </div>
+      </div>
+      <div class="record-list" id="list-${section.id}"></div>
+    `;
+    panelsWrap.appendChild(panel);
+  });
+
+  function switchSection(sectionId){
+    currentSectionId = sectionId;
+    document.querySelectorAll('.stage-tab').forEach(t=> t.classList.toggle('active', t.dataset.section===sectionId));
+    document.querySelectorAll('.stage-panel').forEach(p=> p.classList.toggle('active', p.id === `panel-${sectionId}`));
+  }
+
+  // 입력(+) 버튼
+  document.querySelectorAll('[data-create-section]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const section = SECTIONS.find(s=>s.id===btn.dataset.createSection);
+      openFormModal(section.id, null);
+    });
+  });
+
+  // ==========================================
+  // 🔥 Firestore 실시간 동기화
+  // ==========================================
+  function startAllSync(){
+    SECTIONS.forEach(section=>{
+      if(sectionUnsub[section.id]) return;
+      sectionUnsub[section.id] = db.collection(section.collection)
+        .orderBy('createdAt', 'asc')
+        .onSnapshot(snap=>{
+          sectionData[section.id] = [];
+          snap.forEach(doc=> sectionData[section.id].push({ id: doc.id, ...doc.data() }));
+          renderSection(section.id);
+        }, err=>{
+          console.error(`${section.id} 동기화 오류:`, err);
+          showToast('데이터 동기화에 실패했습니다.', true);
+        });
+    });
+  }
+
+  function initApp(){ startAllSync(); }
+
+  // ==========================================
+  // 🖼️ 렌더링 helpers
+  // ==========================================
+  function fieldChip(label, value, extraClass){
+    return `<div class="field-chip ${extraClass||''}"><span class="f-label">${label}</span><span class="f-value">${value===undefined||value===null||value===''?'-':escapeHtml(value)}</span></div>`;
+  }
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function renderSection(sectionId){
+    const section = SECTIONS.find(s=>s.id===sectionId);
+    const listEl = document.getElementById(`list-${sectionId}`);
+    const countEl = document.getElementById(`count-${sectionId}`);
+    const records = sectionData[sectionId] || [];
+
+    countEl.textContent = records.length;
+
+    if(records.length===0){
+      listEl.innerHTML = `<div class="empty-state">등록된 내역이 없습니다.</div>`;
+      return;
+    }
+
+    if(section.type === 'absence'){
+      listEl.innerHTML = records.map((r, idx)=>{
+        const reasonClass = r.reason==='사유출석' ? 'attend' : 'absent';
+        const sarangHtml = r.sarangbang==='O' ? fieldChip('사랑방', 'O', 'sarang-o') : '';
+        return `
+          <div class="record-card">
+            <div class="record-row">
+              ${fieldChip('번호', idx+1, 'num')}
+              ${fieldChip('구역', `${r.number!==undefined && r.number!=='' ? r.number : '-'}구역`)}
+              ${fieldChip('이름', r.name)}
+              ${fieldChip('사유', r.reason, reasonClass)}
+              ${sarangHtml}
+              <div class="row-actions">
+                <button type="button" class="edit-mini-btn" data-edit="${sectionId}" data-id="${r.id}">수정</button>
+                <button type="button" class="delete-mini-btn" data-delete="${sectionId}" data-id="${r.id}">삭제</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      return;
+    }
+
+    if(section.type === 'sarang'){
+      listEl.innerHTML = records.map((r, idx)=>{
+        const dates = r.visitDates || [];
+        return `
+          <div class="record-card">
+            <div class="record-row with-second-row">
+              ${fieldChip('번호', idx+1, 'num')}
+              ${fieldChip('구역', `${r.number!==undefined && r.number!=='' ? r.number : '-'}구역`)}
+              ${fieldChip('이름', r.name)}
+              ${fieldChip('강사', r.instructor)}
+              ${fieldChip('전도사', r.evangelist)}
+              ${fieldChip('인도자', r.leader)}
+              ${fieldChip('교사', r.teacher)}
+              ${fieldChip('인도자2', r.leader2)}
+              <div class="row-actions">
+                <button type="button" class="edit-mini-btn" data-edit="${sectionId}" data-id="${r.id}">수정</button>
+                <button type="button" class="delete-mini-btn" data-delete="${sectionId}" data-id="${r.id}">삭제</button>
+              </div>
+            </div>
+            <div class="class-dates-row">
+              <span class="cd-label">심방날짜</span>
+              ${dates.map(d=>`<span class="cd-chip">${d}</span>`).join('')}
+              <input type="date" id="cd-input-${sectionId}-${r.id}">
+              <button type="button" class="add-date-btn" data-add-date="${sectionId}" data-id="${r.id}">+ 날짜 추가</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      return;
+    }
+
+    if(section.type === 'visit'){
+      listEl.innerHTML = records.map((r, idx)=>{
+        return `
+          <div class="record-card">
+            <div class="record-row with-second-row">
+              ${fieldChip('번호', idx+1, 'num')}
+              ${fieldChip('구역', `${r.number!==undefined && r.number!=='' ? r.number : '-'}구역`)}
+              ${fieldChip('날짜', r.date)}
+              ${fieldChip('이름', r.name)}
+              ${fieldChip('심방자', r.visitor)}
+              <div class="row-actions">
+                <button type="button" class="edit-mini-btn" data-edit="${sectionId}" data-id="${r.id}">수정</button>
+                <button type="button" class="delete-mini-btn" data-delete="${sectionId}" data-id="${r.id}">삭제</button>
+              </div>
+            </div>
+            <div class="note-text">${r.content ? escapeHtml(r.content) : '심방 내용 없음'}</div>
+          </div>
+        `;
+      }).join('');
+      return;
+    }
+  }
+
+  // ---- 이벤트 위임: 수정/삭제/날짜추가 ----
+  panelsWrap.addEventListener('click', (e)=>{
+    const editBtn = e.target.closest('[data-edit]');
+    if(editBtn){
+      const sectionId = editBtn.dataset.edit;
+      const id = editBtn.dataset.id;
+      const record = (sectionData[sectionId]||[]).find(r=>r.id===id);
+      openFormModal(sectionId, record);
+      return;
+    }
+    const delBtn = e.target.closest('[data-delete]');
+    if(delBtn){
+      const sectionId = delBtn.dataset.delete;
+      const id = delBtn.dataset.id;
+      openConfirmModal('정말 이 내역을 삭제하시겠습니까?', ()=>{
+        db.collection(SECTIONS.find(s=>s.id===sectionId).collection).doc(id).delete()
+          .then(()=> showToast('삭제되었습니다', false))
+          .catch(err=>{ console.error(err); showToast('삭제에 실패했습니다.', true); });
+      });
+      return;
+    }
+    const addDateBtn = e.target.closest('[data-add-date]');
+    if(addDateBtn){
+      const sectionId = addDateBtn.dataset.addDate;
+      const id = addDateBtn.dataset.id;
+      const input = document.getElementById(`cd-input-${sectionId}-${id}`);
+      const dateVal = input.value;
+      if(!dateVal) return;
+      const record = (sectionData[sectionId]||[]).find(r=>r.id===id);
+      const dates = (record && record.visitDates) ? [...record.visitDates] : [];
+      if(!dates.includes(dateVal)) dates.push(dateVal);
+      dates.sort();
+      db.collection(SECTIONS.find(s=>s.id===sectionId).collection).doc(id)
+        .update({ visitDates: dates, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+        .then(()=> showToast('심방날짜가 추가되었습니다', false))
+        .catch(err=>{ console.error(err); showToast('날짜 추가에 실패했습니다.', true); });
+      return;
+    }
+  });
+
+  // ==========================================
+  // 📝 입력/수정 모달 라우팅 (섹션 타입별로 다른 모달 사용)
+  // ==========================================
+  let formContext = { sectionId:null, recordId:null };
+
+  function openFormModal(sectionId, record){
+    const section = SECTIONS.find(s=>s.id===sectionId);
+    formContext = { sectionId, recordId: record ? record.id : null };
+
+    if(section.type === 'absence'){
+      document.getElementById('absenceModalTitle').textContent = record ? `${section.label} 수정` : `${section.label} 입력`;
+      document.getElementById('a_number').value = record ? (record.number!==undefined?record.number:'') : '';
+      document.getElementById('a_name').value = record ? (record.name||'') : '';
+      document.getElementById('a_reason').value = record ? (record.reason||'사유출석') : '사유출석';
+      document.querySelectorAll('input[name="a_sarang"]').forEach(r=> r.checked = record ? (r.value===record.sarangbang) : false);
+      document.getElementById('absenceModalOverlay').classList.remove('hidden');
+      document.getElementById('a_number').focus();
+      return;
+    }
+
+    if(section.type === 'sarang'){
+      document.getElementById('sarangModalTitle').textContent = record ? '사랑방 수정' : '사랑방 입력';
+      document.getElementById('s_number').value = record ? (record.number!==undefined?record.number:'') : '';
+      document.getElementById('s_name').value = record ? (record.name||'') : '';
+      document.getElementById('s_instructor').value = record ? (record.instructor||'') : '';
+      document.getElementById('s_evangelist').value = record ? (record.evangelist||'') : '';
+      document.getElementById('s_leader').value = record ? (record.leader||'') : '';
+      document.getElementById('s_teacher').value = record ? (record.teacher||'') : '';
+      document.getElementById('s_leader2').value = record ? (record.leader2||'') : '';
+      document.getElementById('sarangModalOverlay').classList.remove('hidden');
+      document.getElementById('s_number').focus();
+      return;
+    }
+
+    if(section.type === 'visit'){
+      document.getElementById('visitModalTitle').textContent = record ? '심방 수정' : '심방 입력';
+      document.getElementById('v_number').value = record ? (record.number!==undefined?record.number:'') : '';
+      document.getElementById('v_date').value = record ? (record.date||'') : '';
+      document.getElementById('v_name').value = record ? (record.name||'') : '';
+      document.getElementById('v_visitor').value = record ? (record.visitor||'') : '';
+      document.getElementById('v_content').value = record ? (record.content||'') : '';
+      document.getElementById('visitModalOverlay').classList.remove('hidden');
+      document.getElementById('v_number').focus();
+      return;
+    }
+  }
+
+  function closeAllFormModals(){
+    document.getElementById('absenceModalOverlay').classList.add('hidden');
+    document.getElementById('sarangModalOverlay').classList.add('hidden');
+    document.getElementById('visitModalOverlay').classList.add('hidden');
+    formContext = { sectionId:null, recordId:null };
+  }
+
+  document.getElementById('absenceCancelBtn').addEventListener('click', closeAllFormModals);
+  document.getElementById('sarangCancelBtn').addEventListener('click', closeAllFormModals);
+  document.getElementById('visitCancelBtn').addEventListener('click', closeAllFormModals);
+  ['absenceModalOverlay','sarangModalOverlay','visitModalOverlay'].forEach(id=>{
+    const overlay = document.getElementById(id);
+    overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closeAllFormModals(); });
+  });
+
+  // ---- 결석(수요/주일) 저장 ----
+  document.getElementById('absenceConfirmBtn').addEventListener('click', ()=>{
+    const { sectionId, recordId } = formContext;
+    if(!sectionId) return;
+    const numberVal = document.getElementById('a_number').value;
+    const nameVal = document.getElementById('a_name').value.trim();
+    const reasonVal = document.getElementById('a_reason').value;
+    const sarangEl = document.querySelector('input[name="a_sarang"]:checked');
+
+    if(!nameVal){ showToast('이름을 입력해주세요.', true); return; }
+
+    const payload = {
+      number: numberVal,
+      name: nameVal,
+      reason: reasonVal,
+      sarangbang: sarangEl ? sarangEl.value : '',
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    const collection = SECTIONS.find(s=>s.id===sectionId).collection;
+    const btn = document.getElementById('absenceConfirmBtn');
+    btn.disabled = true;
+
+    let promise;
+    if(recordId){
+      promise = db.collection(collection).doc(recordId).update(payload);
+    } else {
+      payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      promise = db.collection(collection).add(payload);
+    }
+
+    promise
+      .then(()=>{ showToast('저장되었습니다', false); closeAllFormModals(); })
+      .catch(err=>{ console.error(err); showToast('저장에 실패했습니다. 네트워크를 확인해주세요.', true); })
+      .finally(()=>{ btn.disabled = false; });
+  });
+
+  // ---- 사랑방 저장 ----
+  document.getElementById('sarangConfirmBtn').addEventListener('click', ()=>{
+    const { sectionId, recordId } = formContext;
+    if(!sectionId) return;
+    const nameVal = document.getElementById('s_name').value.trim();
+    if(!nameVal){ showToast('이름을 입력해주세요.', true); return; }
+
+    const payload = {
+      number: document.getElementById('s_number').value,
+      name: nameVal,
+      instructor: document.getElementById('s_instructor').value.trim(),
+      evangelist: document.getElementById('s_evangelist').value.trim(),
+      leader: document.getElementById('s_leader').value.trim(),
+      teacher: document.getElementById('s_teacher').value.trim(),
+      leader2: document.getElementById('s_leader2').value.trim(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    const collection = SECTIONS.find(s=>s.id===sectionId).collection;
+    const btn = document.getElementById('sarangConfirmBtn');
+    btn.disabled = true;
+
+    let promise;
+    if(recordId){
+      promise = db.collection(collection).doc(recordId).update(payload);
+    } else {
+      payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      payload.visitDates = [];
+      promise = db.collection(collection).add(payload);
+    }
+
+    promise
+      .then(()=>{ showToast('저장되었습니다', false); closeAllFormModals(); })
+      .catch(err=>{ console.error(err); showToast('저장에 실패했습니다. 네트워크를 확인해주세요.', true); })
+      .finally(()=>{ btn.disabled = false; });
+  });
+
+  // ---- 심방 저장 ----
+  document.getElementById('visitConfirmBtn').addEventListener('click', ()=>{
+    const { sectionId, recordId } = formContext;
+    if(!sectionId) return;
+    const nameVal = document.getElementById('v_name').value.trim();
+    if(!nameVal){ showToast('이름을 입력해주세요.', true); return; }
+
+    const payload = {
+      number: document.getElementById('v_number').value,
+      date: document.getElementById('v_date').value,
+      name: nameVal,
+      visitor: document.getElementById('v_visitor').value.trim(),
+      content: document.getElementById('v_content').value.trim(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    const collection = SECTIONS.find(s=>s.id===sectionId).collection;
+    const btn = document.getElementById('visitConfirmBtn');
+    btn.disabled = true;
+
+    let promise;
+    if(recordId){
+      promise = db.collection(collection).doc(recordId).update(payload);
+    } else {
+      payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      promise = db.collection(collection).add(payload);
+    }
+
+    promise
+      .then(()=>{ showToast('저장되었습니다', false); closeAllFormModals(); })
+      .catch(err=>{ console.error(err); showToast('저장에 실패했습니다. 네트워크를 확인해주세요.', true); })
+      .finally(()=>{ btn.disabled = false; });
+  });
+
+  // ==========================================
+  // ⚠️ 삭제 확인 모달
+  // ==========================================
+  const confirmModalOverlay = document.getElementById('confirmModalOverlay');
+  const confirmMessage = document.getElementById('confirmMessage');
+  const confirmYesBtn = document.getElementById('confirmYesBtn');
+  const confirmNoBtn = document.getElementById('confirmNoBtn');
+  let confirmCallback = null;
+
+  function openConfirmModal(message, onYes){
+    confirmMessage.textContent = message;
+    confirmCallback = onYes;
+    confirmModalOverlay.classList.remove('hidden');
+  }
+  function closeConfirmModal(){
+    confirmModalOverlay.classList.add('hidden');
+    confirmCallback = null;
+  }
+  confirmYesBtn.addEventListener('click', ()=>{
+    if(confirmCallback) confirmCallback();
+    closeConfirmModal();
+  });
+  confirmNoBtn.addEventListener('click', closeConfirmModal);
+  confirmModalOverlay.addEventListener('click', (e)=>{ if(e.target===confirmModalOverlay) closeConfirmModal(); });
+
+  // ==========================================
+  // 🍞 토스트
+  // ==========================================
+  const toast = document.getElementById('saveToast');
+  function showToast(message, isError){
+    toast.textContent = message || '저장되었습니다';
+    toast.classList.toggle('error', !!isError);
+    toast.classList.add('show');
+    setTimeout(()=> toast.classList.remove('show'), 1800);
+  }
+</script>
+</body>
+</html>
