@@ -78,8 +78,16 @@ async function fetchCollectionSummary(col, limit = 10) {
     .map((doc) => {
       const d = doc.data();
       const label = d.name || d.title || '(이름없음)';
-      const extra = d.phone ? ` / ${d.phone}` : '';
-      return `  • ${label}${extra}`;
+      const parts = [];
+      if (d.gender) parts.push(d.gender);
+      if (d.birth) parts.push(d.birth);
+      if (d.phone) parts.push(d.phone);
+      if (d.address) parts.push(d.address);
+      if (d.method) parts.push(`찾기:${d.method}`);
+      if (d.openStatus) parts.push(`오픈:${d.openStatus}`);
+      const detail = parts.length ? ` (${parts.join(' / ')})` : '';
+      const note = d.note ? `\n     └ ${d.note}` : '';
+      return `  • ${label}${detail}${note}`;
     })
     .join('\n');
 }
