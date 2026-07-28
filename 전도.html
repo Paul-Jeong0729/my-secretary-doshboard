@@ -391,6 +391,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="telegram-notify.js"></script>
 
 <script>
   // ⚠️ 구역.html과 동일한 Firebase 프로젝트를 사용합니다.
@@ -678,9 +679,15 @@
     if(delBtn){
       const stageId = delBtn.dataset.delete;
       const id = delBtn.dataset.id;
+      const stageLabel = STAGES.find(s=>s.id===stageId).label;
+      const targetRecord = (stageData[stageId]||[]).find(r=>r.id===id);
+      const targetName = targetRecord ? targetRecord.name : '';
       openConfirmModal('정말 이 명단을 삭제하시겠습니까?', ()=>{
         db.collection(STAGES.find(s=>s.id===stageId).collection).doc(id).delete()
-          .then(()=> showToast('삭제되었습니다', false))
+          .then(()=>{
+            showToast('삭제되었습니다', false);
+            notifyRecordChange('전도', '삭제', stageLabel, targetName);
+          })
           .catch(err=>{ console.error(err); showToast('삭제에 실패했습니다.', true); });
       });
       return;
@@ -699,7 +706,11 @@
       copy.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
       if(STAGES.find(s=>s.id===stage.next).hasClassDate && !copy.classDates) copy.classDates = [];
       db.collection(nextCollection).add(copy)
-        .then(()=>{ showToast(`${STAGES.find(s=>s.id===stage.next).label} 단계로 이동(복사)되었습니다`, false); })
+        .then(()=>{
+          const nextLabel = STAGES.find(s=>s.id===stage.next).label;
+          showToast(`${nextLabel} 단계로 이동(복사)되었습니다`, false);
+          notifyRecordChange('전도', '단계향상', `${stage.label} → ${nextLabel}`, record.name);
+        })
         .catch(err=>{ console.error(err); showToast('단계향상에 실패했습니다.', true); });
       return;
     }
@@ -795,7 +806,12 @@
     }
 
     promise
-      .then(()=>{ showToast('저장되었습니다', false); closeFormModal(); })
+      .then(()=>{
+        showToast('저장되었습니다', false);
+        closeFormModal();
+        const stageLabel = STAGES.find(s=>s.id===stageId).label;
+        notifyRecordChange('전도', recordId ? '수정' : '입력', stageLabel, payload.name);
+      })
       .catch(err=>{ console.error(err); showToast('저장에 실패했습니다. 네트워크를 확인해주세요.', true); })
       .finally(()=>{ formConfirmBtn.disabled = false; });
   });
