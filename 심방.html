@@ -267,6 +267,12 @@
     width:100%; padding:11px 0; border:none; border-radius:8px;
     background:linear-gradient(135deg, #a3e635, #65a30d); color:#fff; font-weight:800; font-size:0.95rem; cursor:pointer;
   }
+  .login-cancel-btn{
+    width:100%; margin-top:10px; padding:11px 0; border-radius:8px;
+    background:rgba(255,255,255,0.06); border:1px solid var(--border-color);
+    color:var(--sub-text); font-weight:700; font-size:0.9rem; cursor:pointer; transition:0.2s;
+  }
+  .login-cancel-btn:hover{ color:var(--text-color); }
 </style>
 </head>
 <body>
@@ -287,6 +293,7 @@
       </div>
       <div class="login-error hidden" id="loginError"></div>
       <button type="button" class="login-submit-btn" id="loginSubmitBtn">로그인</button>
+      <button type="button" class="login-cancel-btn" id="loginBackBtn">← 뒤로가기</button>
     </div>
   </div>
 
@@ -406,15 +413,15 @@
     appId: "1:165274759452:web:bbfa7de28a08f8e11b4ad9",
     measurementId: "G-TVB8JR7B3W"
   };
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+  const pageApp = firebase.initializeApp(firebaseConfig, 'visitPageApp');
+  const auth = pageApp.auth();
+  const db = pageApp.firestore();
 
   // ==========================================
-  // 🚫 자동 로그인 방지
+  // 🚫 자동 로그인 방지 (이 페이지 전용 독립 앱 인스턴스라
+  //   홈 화면 등 다른 페이지의 로그인 상태에는 영향을 주지 않습니다.)
   // ==========================================
   auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
-    .then(() => auth.signOut())
     .catch(err => console.error('Persistence 설정 오류:', err));
 
   // ---- 로그인 ----
@@ -465,6 +472,24 @@
   });
 
   document.getElementById('closeWindowBtn').addEventListener('click', ()=> window.close());
+
+  // 뒤로가기 버튼: 팝업으로 열렸으면 창을 닫아 홈으로 복귀, 아니면 브라우저 뒤로가기
+  function goToHome() {
+    if (window.opener && !window.opener.closed) {
+      window.close();
+    } else if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = 'index.html';
+    }
+  }
+  document.getElementById('loginBackBtn').addEventListener('click', goToHome);
+
+  // 브라우저 캐시(bfcache)로 이 페이지에 되돌아왔을 때 이전 화면이 그대로
+  // 남아있지 않도록 새로고침하여 로그인 상태를 다시 정확히 확인합니다.
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) window.location.reload();
+  });
 
   auth.onAuthStateChanged(user=>{
     if(user){

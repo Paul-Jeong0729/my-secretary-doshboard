@@ -596,55 +596,7 @@
       </div>
       <div class="login-error hidden" id="loginError"></div>
       <button type="button" class="login-submit-btn" id="loginSubmitBtn">로그인</button>
-      <div class="login-links">
-        <button type="button" class="login-link-btn" id="showSignupBtn">가입</button>
-        <span class="login-link-divider">|</span>
-        <button type="button" class="login-link-btn" id="showResetBtn">비밀번호 수정</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 📝 가입 오버레이 -->
-  <div class="login-overlay hidden" id="signupOverlay">
-    <div class="login-card">
-      <h2 class="login-title">📝 신규 가입</h2>
-      <div class="login-form-group">
-        <label for="signupEmail">이메일</label>
-        <input type="email" id="signupEmail" placeholder="이메일을 입력하세요" autocomplete="off" />
-      </div>
-      <div class="login-form-group">
-        <label for="signupPassword">비밀번호 (6자리 이상)</label>
-        <input type="password" id="signupPassword" placeholder="비밀번호를 입력하세요" autocomplete="new-password" />
-      </div>
-      <div class="login-form-group">
-        <label for="signupPasswordConfirm">비밀번호 확인</label>
-        <input type="password" id="signupPasswordConfirm" placeholder="비밀번호를 다시 입력하세요" autocomplete="new-password" />
-      </div>
-      <div class="login-error hidden" id="signupError"></div>
-      <button type="button" class="login-submit-btn" id="signupSubmitBtn">가입하기</button>
-      <button type="button" class="login-cancel-btn" id="signupCancelBtn">취소</button>
-    </div>
-  </div>
-
-  <!-- 🔑 비밀번호 수정 오버레이 -->
-  <div class="login-overlay hidden" id="resetOverlay">
-    <div class="login-card">
-      <h2 class="login-title">🔑 비밀번호 수정</h2>
-      <div class="login-form-group">
-        <label for="resetEmail">이메일</label>
-        <input type="email" id="resetEmail" placeholder="가입한 이메일을 입력하세요" autocomplete="off" />
-      </div>
-      <div class="login-form-group">
-        <label for="resetCurrentPassword">현재 비밀번호</label>
-        <input type="password" id="resetCurrentPassword" placeholder="현재 비밀번호를 입력하세요" autocomplete="off" />
-      </div>
-      <div class="login-form-group">
-        <label for="resetNewPassword">새 비밀번호 (6자리 이상)</label>
-        <input type="password" id="resetNewPassword" placeholder="새 비밀번호를 입력하세요" autocomplete="new-password" />
-      </div>
-      <div class="login-error hidden" id="resetError"></div>
-      <button type="button" class="login-submit-btn" id="resetSubmitBtn">변경하기</button>
-      <button type="button" class="login-cancel-btn" id="resetCancelBtn">취소</button>
+      <button type="button" class="login-cancel-btn" id="loginBackBtn">← 뒤로가기</button>
     </div>
   </div>
 
@@ -757,32 +709,28 @@
     measurementId: "G-TVB8JR7B3W"
   };
 
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+  const pageApp = firebase.initializeApp(firebaseConfig, 'zonePageApp');
+  const auth = pageApp.auth();
+  const db = pageApp.firestore();
 
   // ==========================================
-  // 🚫 자동 로그인 방지
-  // - persistence를 NONE으로 설정해 세션을 저장하지 않고
-  // - 페이지가 열릴 때마다 남아있는 로그인 상태를 강제로 로그아웃시켜
-  //   링크에 들어올 때마다 항상 빈 로그인 화면부터 시작하게 합니다.
+  // 🚫 자동 로그인 방지 (이 페이지 전용 독립 세션)
+  // - 이 페이지만의 별도 Firebase 앱 인스턴스를 사용해
+  //   홈 화면 등 다른 페이지의 로그인 상태에는 영향을 주지 않으면서
+  //   이 페이지는 열릴 때마다 항상 빈 로그인 화면부터 시작하게 합니다.
   // ==========================================
   auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
-    .then(() => auth.signOut())
     .catch(err => console.error('Persistence 설정 오류:', err));
 
   // ==========================================
-  // 🔐 로그인 / 가입 / 비밀번호 수정 모듈 (Firebase Authentication)
+  // 🔐 로그인 모듈 (Firebase Authentication)
   // ==========================================
   const loginOverlay = document.getElementById('loginOverlay');
-  const signupOverlay = document.getElementById('signupOverlay');
-  const resetOverlay = document.getElementById('resetOverlay');
   const mainContent = document.getElementById('mainContent');
 
   // 브라우저 자동완성으로 채워질 수 있는 입력값을 페이지 로드 직후 강제로 비웁니다.
   function clearLoginInputs() {
-    ['loginEmail','loginPassword','signupEmail','signupPassword','signupPasswordConfirm',
-     'resetEmail','resetCurrentPassword','resetNewPassword'].forEach(id => {
+    ['loginEmail','loginPassword'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
@@ -790,9 +738,26 @@
   window.addEventListener('load', () => { setTimeout(clearLoginInputs, 50); });
   clearLoginInputs();
 
+  // 뒤로가기 버튼: 팝업으로 열렸으면 창을 닫아 홈으로 복귀, 아니면 브라우저 뒤로가기
+  function goToHome() {
+    if (window.opener && !window.opener.closed) {
+      window.close();
+    } else if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = 'index.html';
+    }
+  }
+  document.getElementById('loginBackBtn').addEventListener('click', goToHome);
+
+  // 브라우저 캐시(bfcache)로 이 페이지에 되돌아왔을 때 이전 화면이 그대로
+  // 남아있지 않도록 새로고침하여 로그인 상태를 다시 정확히 확인합니다.
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) window.location.reload();
+  });
+
   function showOnlyOverlay(target) {
-    [loginOverlay, signupOverlay, resetOverlay].forEach(o => o.classList.add('hidden'));
-    if (target) target.classList.remove('hidden');
+    loginOverlay.classList.toggle('hidden', target !== loginOverlay);
   }
 
   function clearError(el) {
@@ -869,111 +834,6 @@
     });
   });
 
-  // ---- 화면 전환 ----
-  document.getElementById('showSignupBtn').addEventListener('click', () => {
-    clearError(document.getElementById('signupError'));
-    showOnlyOverlay(signupOverlay);
-  });
-  document.getElementById('showResetBtn').addEventListener('click', () => {
-    clearError(document.getElementById('resetError'));
-    showOnlyOverlay(resetOverlay);
-  });
-  document.getElementById('signupCancelBtn').addEventListener('click', () => {
-    showOnlyOverlay(loginOverlay);
-  });
-  document.getElementById('resetCancelBtn').addEventListener('click', () => {
-    showOnlyOverlay(loginOverlay);
-  });
-
-  // ---- 신규 가입 처리 ----
-  const signupEmailInput = document.getElementById('signupEmail');
-  const signupPasswordInput = document.getElementById('signupPassword');
-  const signupPasswordConfirmInput = document.getElementById('signupPasswordConfirm');
-  const signupError = document.getElementById('signupError');
-  const signupSubmitBtn = document.getElementById('signupSubmitBtn');
-
-  function attemptSignup() {
-    const email = signupEmailInput.value.trim();
-    const pw = signupPasswordInput.value;
-    const pwConfirm = signupPasswordConfirmInput.value;
-
-    if (!email || !pw) {
-      showError(signupError, '이메일과 비밀번호를 모두 입력해주세요.');
-      return;
-    }
-    if (pw !== pwConfirm) {
-      showError(signupError, '비밀번호가 일치하지 않습니다.');
-      return;
-    }
-
-    clearError(signupError);
-    signupSubmitBtn.disabled = true;
-
-    // 가입 성공 시 Firebase가 자동으로 로그인 상태로 전환해줍니다.
-    auth.createUserWithEmailAndPassword(email, pw)
-      .then(() => {
-        signupEmailInput.value = '';
-        signupPasswordInput.value = '';
-        signupPasswordConfirmInput.value = '';
-      })
-      .catch(err => {
-        showError(signupError, mapFirebaseError(err));
-      })
-      .finally(() => {
-        signupSubmitBtn.disabled = false;
-      });
-  }
-
-  signupSubmitBtn.addEventListener('click', attemptSignup);
-  [signupEmailInput, signupPasswordInput, signupPasswordConfirmInput].forEach(input => {
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); attemptSignup(); }
-    });
-  });
-
-  // ---- 비밀번호 수정 처리 (현재 비밀번호로 재인증 후 변경) ----
-  const resetEmailInput = document.getElementById('resetEmail');
-  const resetCurrentPasswordInput = document.getElementById('resetCurrentPassword');
-  const resetNewPasswordInput = document.getElementById('resetNewPassword');
-  const resetError = document.getElementById('resetError');
-  const resetSubmitBtn = document.getElementById('resetSubmitBtn');
-
-  function attemptReset() {
-    const email = resetEmailInput.value.trim();
-    const curPw = resetCurrentPasswordInput.value;
-    const newPw = resetNewPasswordInput.value;
-
-    if (!email || !curPw || !newPw) {
-      showError(resetError, '모든 항목을 입력해주세요.');
-      return;
-    }
-
-    clearError(resetError);
-    resetSubmitBtn.disabled = true;
-
-    // 현재 비밀번호로 로그인(=재인증) 후 새 비밀번호로 교체
-    auth.signInWithEmailAndPassword(email, curPw)
-      .then(cred => cred.user.updatePassword(newPw))
-      .then(() => {
-        resetEmailInput.value = '';
-        resetCurrentPasswordInput.value = '';
-        resetNewPasswordInput.value = '';
-        // 비밀번호 변경 후 그대로 로그인된 상태로 앱이 열립니다.
-      })
-      .catch(err => {
-        showError(resetError, mapFirebaseError(err));
-      })
-      .finally(() => {
-        resetSubmitBtn.disabled = false;
-      });
-  }
-
-  resetSubmitBtn.addEventListener('click', attemptReset);
-  [resetEmailInput, resetCurrentPasswordInput, resetNewPasswordInput].forEach(input => {
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); attemptReset(); }
-    });
-  });
 
   // ---- 로그아웃 ----
   document.getElementById('logoutBtn').addEventListener('click', () => {
