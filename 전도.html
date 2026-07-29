@@ -299,6 +299,14 @@
     color:var(--sub-text); font-weight:700; font-size:0.9rem; cursor:pointer; transition:0.2s;
   }
   .login-cancel-btn:hover{ color:var(--text-color); }
+  .logout-btn-wrap{ position:fixed; left:22px; bottom:26px; z-index:50; }
+  #logoutBtn{
+    display:flex; align-items:center; gap:6px;
+    background:rgba(255,255,255,0.06); border:1px solid var(--border-color);
+    color:var(--sub-text); font-weight:700; font-size:0.82rem;
+    padding:9px 16px; border-radius:20px; cursor:pointer; transition:0.2s;
+  }
+  #logoutBtn:hover{ color:var(--text-color); border-color:var(--sub-text); }
 </style>
 </head>
 <body>
@@ -324,6 +332,9 @@
   </div>
 
   <div id="mainContent" class="main-content-hidden">
+    <div class="logout-btn-wrap">
+      <button type="button" id="logoutBtn">🚪 로그아웃</button>
+    </div>
     <div class="page-header">
       <h1>🙌 송촌1부 전도 관리</h1>
       <p>찾기 → 섭외자 → 세미나 → 센타 수강 → 센타 등록</p>
@@ -411,19 +422,17 @@
     appId: "1:165274759452:web:bbfa7de28a08f8e11b4ad9",
     measurementId: "G-TVB8JR7B3W"
   };
-  const pageApp = firebase.initializeApp(firebaseConfig, 'evangelismPageApp');
-  const auth = pageApp.auth();
-  const db = pageApp.firestore();
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
   // ==========================================
-  // 🚫 자동 로그인 방지
-  // - persistence를 NONE으로 설정해 세션을 저장하지 않고
-  // - 페이지가 열릴 때마다 남아있는 로그인 상태를 강제로 로그아웃시켜
-  //   링크에 들어올 때마다 항상 빈 로그인 화면부터 시작하게 합니다.
-  //   (이 페이지 전용 독립 앱 인스턴스라 홈 화면 등 다른 페이지의
-  //    로그인 상태에는 영향을 주지 않습니다.)
+  // ✅ 로그인 상태 유지
+  // - 모든 페이지(구역/전도/심방/활동/홈)가 같은 Firebase 프로젝트의
+  //   기본 인증 세션을 공유하므로, 한 번 로그인하면 다른 페이지로
+  //   이동해도 다시 로그인할 필요가 없습니다.
   // ==========================================
-  auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
     .catch(err => console.error('Persistence 설정 오류:', err));
 
   // ---- 로그인 ----
@@ -486,6 +495,7 @@
     }
   }
   document.getElementById('loginBackBtn').addEventListener('click', goToHome);
+  document.getElementById('logoutBtn').addEventListener('click', () => { auth.signOut(); });
 
   // 브라우저 캐시(bfcache)로 이 페이지에 되돌아왔을 때 이전 화면이 그대로
   // 남아있지 않도록 새로고침하여 로그인 상태를 다시 정확히 확인합니다.

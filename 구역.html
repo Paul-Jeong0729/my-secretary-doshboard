@@ -709,17 +709,17 @@
     measurementId: "G-TVB8JR7B3W"
   };
 
-  const pageApp = firebase.initializeApp(firebaseConfig, 'zonePageApp');
-  const auth = pageApp.auth();
-  const db = pageApp.firestore();
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
   // ==========================================
-  // 🚫 자동 로그인 방지 (이 페이지 전용 독립 세션)
-  // - 이 페이지만의 별도 Firebase 앱 인스턴스를 사용해
-  //   홈 화면 등 다른 페이지의 로그인 상태에는 영향을 주지 않으면서
-  //   이 페이지는 열릴 때마다 항상 빈 로그인 화면부터 시작하게 합니다.
+  // ✅ 로그인 상태 유지
+  // - 모든 페이지(구역/전도/심방/활동/홈)가 같은 Firebase 프로젝트의
+  //   기본 인증 세션을 공유하므로, 한 번 로그인하면 다른 페이지로
+  //   이동해도 다시 로그인할 필요가 없습니다.
   // ==========================================
-  auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
     .catch(err => console.error('Persistence 설정 오류:', err));
 
   // ==========================================
