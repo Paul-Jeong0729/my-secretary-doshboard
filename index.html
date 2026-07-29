@@ -454,13 +454,12 @@
     const db = firebase.firestore();
 
     // ==========================================
-    // 🚫 자동 로그인 방지
-    // - persistence를 NONE으로 설정해 세션을 아예 저장하지 않고
-    // - 페이지가 열릴 때마다 혹시 남아있는 로그인 상태를 강제로 로그아웃시켜
-    //   링크에 들어올 때마다 항상 빈 로그인 화면부터 시작하게 합니다.
+    // ✅ 로그인 상태 유지
+    // - 모든 페이지(구역/전도/심방/활동/홈)가 같은 Firebase 프로젝트의
+    //   기본 인증 세션을 공유하므로, 한 번 로그인하면 다른 페이지로
+    //   이동해도 다시 로그인할 필요가 없습니다.
     // ==========================================
-    auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
-      .then(() => auth.signOut())
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
       .catch(err => console.error('Persistence 설정 오류:', err));
 
     // ==========================================
