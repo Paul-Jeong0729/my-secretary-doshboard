@@ -101,6 +101,8 @@
     cursor:text;
   }
 
+  body.editing .leader-name{ cursor:text; }
+
   /* ===== 연결선 ===== */
   .stem{
     width:2px;
@@ -196,6 +198,7 @@
     font-weight:800;
     font-size:0.95rem;
     color:var(--text-color);
+    cursor:pointer;
   }
 
   .members-header{
@@ -237,8 +240,9 @@
   .members .member{
     font-size:0.82rem;
     color:var(--sub-text);
+    cursor:pointer;
   }
-  body.editing .members .member{ color:var(--text-color); }
+  body.editing .members .member{ color:var(--text-color); cursor:text; }
 
   /* ===== 수정 버튼 ===== */
   .edit-btn-wrap{
@@ -246,6 +250,7 @@
     left:0; right:0; bottom:26px;
     display:flex;
     justify-content:center;
+    gap:12px;
     pointer-events:none;
   }
   #editBtn{
@@ -400,6 +405,250 @@
     color:var(--sub-text);
   }
   #countPopupCancel:hover{ color:var(--text-color); }
+
+  /* ===== 이름 클릭 시 보이는 구역원 정보 보기 팝업 ===== */
+  .view-popup-card{
+    width:320px;
+    max-width:90%;
+    background:linear-gradient(160deg, rgba(30,41,59,0.97), rgba(15,23,42,0.97));
+    border:1.5px solid var(--accent-color);
+    border-radius:16px;
+    box-shadow:0 0 26px rgba(163,230,53,0.3), 0 8px 24px rgba(0,0,0,0.45);
+    padding:26px 24px 20px;
+  }
+  .view-popup-name{
+    font-size:1.15rem;
+    font-weight:800;
+    color:var(--title-color);
+    text-align:center;
+    margin-bottom:18px;
+    padding-bottom:14px;
+    border-bottom:1px dashed var(--border-color);
+  }
+  .view-popup-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 0;
+    font-size:0.9rem;
+  }
+  .view-popup-row .vp-label{
+    width:64px;
+    flex-shrink:0;
+    color:var(--sub-text);
+    font-weight:700;
+    font-size:0.78rem;
+    letter-spacing:0.5px;
+  }
+  .view-popup-row .vp-value{
+    color:var(--text-color);
+    font-weight:600;
+    flex:1;
+  }
+  .view-popup-empty{
+    text-align:center;
+    color:var(--sub-text);
+    font-size:0.85rem;
+    padding:10px 0;
+  }
+  .view-popup-close{
+    width:100%;
+    margin-top:16px;
+    padding:10px 0;
+    border-radius:8px;
+    border:1px solid var(--border-color);
+    background:rgba(255,255,255,0.06);
+    color:var(--sub-text);
+    font-weight:700;
+    font-size:0.88rem;
+    cursor:pointer;
+    transition:0.2s;
+  }
+  .view-popup-close:hover{ color:var(--text-color); }
+
+  /* ===== 구역원 정보 입력 모달 ===== */
+  .info-modal-card{
+    width:420px;
+    max-width:92%;
+    max-height:86vh;
+    overflow-y:auto;
+    background:rgba(15,23,42,0.97);
+    border:1.5px solid var(--blue);
+    border-radius:16px;
+    box-shadow:0 0 26px rgba(190,242,100,0.3), 0 8px 24px rgba(0,0,0,0.45);
+    padding:24px 22px 20px;
+  }
+  .info-modal-title{
+    color:var(--blue);
+    font-weight:800;
+    font-size:1.05rem;
+    margin-bottom:16px;
+    text-shadow:0 0 8px rgba(190,242,100,0.5);
+  }
+  .info-search-wrap{ position:relative; margin-bottom:14px; }
+  .info-search-wrap input{
+    width:100%;
+    background:rgba(10,15,26,0.6);
+    border:1px solid var(--blue);
+    border-radius:8px;
+    color:var(--text-color);
+    font-size:0.92rem;
+    padding:10px 12px;
+    outline:none;
+    box-sizing:border-box;
+  }
+  .info-search-results{
+    position:absolute;
+    top:calc(100% + 4px);
+    left:0; right:0;
+    background:rgba(20,28,44,0.98);
+    border:1px solid var(--blue);
+    border-radius:8px;
+    max-height:180px;
+    overflow-y:auto;
+    z-index:20;
+    box-shadow:0 6px 18px rgba(0,0,0,0.4);
+  }
+  .info-search-results.hidden{ display:none; }
+  .info-search-results .result-item{
+    padding:9px 12px;
+    font-size:0.88rem;
+    cursor:pointer;
+    color:var(--text-color);
+  }
+  .info-search-results .result-item:hover{ background:rgba(190,242,100,0.15); }
+  .info-search-empty{
+    padding:9px 12px;
+    font-size:0.82rem;
+    color:var(--sub-text);
+  }
+
+  .info-form-group{ margin-bottom:12px; }
+  .info-form-group label{
+    display:block;
+    font-size:0.76rem;
+    color:var(--sub-text);
+    font-weight:700;
+    margin-bottom:5px;
+  }
+  .info-form-group .info-name-display{
+    background:rgba(190,242,100,0.1);
+    border:1px solid var(--blue);
+    border-radius:8px;
+    padding:9px 12px;
+    font-weight:800;
+    color:var(--blue);
+    font-size:0.92rem;
+  }
+  .info-form-group input{
+    width:100%;
+    background:rgba(10,15,26,0.6);
+    border:1px solid var(--border-color);
+    border-radius:8px;
+    color:var(--text-color);
+    font-size:0.9rem;
+    padding:9px 12px;
+    outline:none;
+    box-sizing:border-box;
+  }
+  .info-form-group input:focus{ border-color:var(--blue); box-shadow:0 0 8px rgba(190,242,100,0.4); }
+
+  #memberFormSaveBtn{
+    width:100%;
+    padding:10px 0;
+    border:none;
+    border-radius:8px;
+    background:linear-gradient(135deg, #a3e635, #65a30d);
+    color:#fff;
+    font-weight:800;
+    font-size:0.9rem;
+    cursor:pointer;
+    margin-top:4px;
+  }
+  #memberFormSaveBtn:disabled{ opacity:0.55; cursor:not-allowed; }
+
+  .info-list-title{
+    margin:20px 0 8px;
+    padding-top:14px;
+    border-top:1px dashed var(--border-color);
+    font-size:0.78rem;
+    color:var(--sub-text);
+    font-weight:700;
+  }
+  .info-list{ display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto; }
+  .info-list-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--border-color);
+    border-radius:8px;
+    padding:8px 10px;
+  }
+  .info-list-item .ili-name{
+    font-weight:800;
+    font-size:0.86rem;
+    color:var(--text-color);
+    flex-shrink:0;
+    min-width:56px;
+  }
+  .info-list-item .ili-summary{
+    flex:1;
+    font-size:0.78rem;
+    color:var(--sub-text);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .info-list-item .ili-edit,
+  .info-list-item .ili-delete{
+    flex-shrink:0;
+    border:none;
+    border-radius:6px;
+    font-size:0.74rem;
+    font-weight:700;
+    padding:5px 9px;
+    cursor:pointer;
+  }
+  .info-list-item .ili-edit{ background:rgba(190,242,100,0.15); color:var(--blue); }
+  .info-list-item .ili-edit:hover{ background:var(--blue); color:#000; }
+  .info-list-item .ili-delete{ background:rgba(239,68,68,0.15); color:#f87171; }
+  .info-list-item .ili-delete:hover{ background:#ef4444; color:#fff; }
+  .info-list-empty{ color:var(--sub-text); font-size:0.82rem; padding:8px 2px; }
+
+  #memberInfoDoneBtn{
+    width:100%;
+    margin-top:18px;
+    padding:11px 0;
+    border-radius:8px;
+    border:1px solid var(--border-color);
+    background:rgba(255,255,255,0.06);
+    color:var(--sub-text);
+    font-weight:700;
+    font-size:0.9rem;
+    cursor:pointer;
+    transition:0.2s;
+  }
+  #memberInfoDoneBtn:hover{ color:var(--text-color); }
+
+  /* 편집모드에서만 보이는 "구역원 정보 입력" 버튼 */
+  #memberInfoBtn{
+    display:none;
+    pointer-events:auto;
+    align-items:center;
+    gap:8px;
+    background:rgba(255,255,255,0.06);
+    border:1.5px solid var(--blue);
+    color:var(--blue);
+    font-weight:800;
+    font-size:0.9rem;
+    padding:13px 22px;
+    border-radius:30px;
+    cursor:pointer;
+    transition:all 0.2s ease;
+  }
+  #memberInfoBtn:hover{ background:var(--blue); color:#000; }
+  body.editing #memberInfoBtn{ display:flex; }
 
   /* ===== 닫기 버튼 ===== */
   .close-window-btn{
@@ -647,6 +896,7 @@
 
     <div class="edit-btn-wrap">
       <button id="editBtn">✏️ 수정</button>
+      <button type="button" id="memberInfoBtn">📇 구역원 정보 입력</button>
     </div>
     <div class="logout-btn-wrap">
       <button type="button" id="logoutBtn">🚪 로그아웃</button>
@@ -662,6 +912,57 @@
           <button type="button" id="countPopupConfirm">확인</button>
           <button type="button" id="countPopupCancel">취소</button>
         </div>
+      </div>
+    </div>
+
+    <!-- 이름 클릭 시 뜨는 구역원 정보 보기 팝업 -->
+    <div class="popup-overlay hidden" id="memberViewOverlay">
+      <div class="view-popup-card">
+        <div class="view-popup-name" id="viewPopupName">이름</div>
+        <div id="viewPopupBody">
+          <div class="view-popup-row"><span class="vp-label">생년월일</span><span class="vp-value" id="viewPopupBirth">-</span></div>
+          <div class="view-popup-row"><span class="vp-label">연락처</span><span class="vp-value" id="viewPopupPhone">-</span></div>
+          <div class="view-popup-row"><span class="vp-label">사는곳</span><span class="vp-value" id="viewPopupAddress">-</span></div>
+        </div>
+        <div class="view-popup-empty hidden" id="viewPopupEmpty">등록된 정보가 없습니다.</div>
+        <button type="button" class="view-popup-close" id="viewPopupCloseBtn">닫기</button>
+      </div>
+    </div>
+
+    <!-- 구역원 정보 입력 모달 -->
+    <div class="popup-overlay hidden" id="memberInfoOverlay">
+      <div class="info-modal-card">
+        <div class="info-modal-title">📇 구역원 정보 입력</div>
+
+        <div class="info-search-wrap">
+          <input type="text" id="memberSearchInput" placeholder="조직도에 있는 이름을 검색하세요" autocomplete="off" />
+          <div class="info-search-results hidden" id="memberSearchResults"></div>
+        </div>
+
+        <div class="info-form-group">
+          <label>이름</label>
+          <div class="info-name-display" id="memberFormName">이름을 검색해서 선택하세요</div>
+        </div>
+        <div class="info-form-group">
+          <label for="memberFormBirth">생년월일</label>
+          <input type="text" id="memberFormBirth" placeholder="예: 1985-03-12" />
+        </div>
+        <div class="info-form-group">
+          <label for="memberFormPhone">연락처</label>
+          <input type="text" id="memberFormPhone" placeholder="예: 010-1234-5678" />
+        </div>
+        <div class="info-form-group">
+          <label for="memberFormAddress">사는곳</label>
+          <input type="text" id="memberFormAddress" placeholder="예: 대전시 유성구" />
+        </div>
+        <button type="button" id="memberFormSaveBtn" disabled>저장</button>
+
+        <div class="info-list-title">등록된 구역원 정보</div>
+        <div class="info-list" id="memberInfoList">
+          <div class="info-list-empty">아직 등록된 정보가 없습니다.</div>
+        </div>
+
+        <button type="button" id="memberInfoDoneBtn">완료</button>
       </div>
     </div>
 
@@ -846,10 +1147,12 @@
       showOnlyOverlay(null);
       mainContent.classList.remove('main-content-hidden');
       startOrgChartSync();
+      startMemberInfoSync();
     } else {
       mainContent.classList.add('main-content-hidden');
       showOnlyOverlay(loginOverlay);
       stopOrgChartSync();
+      stopMemberInfoSync();
     }
   });
 
@@ -1027,6 +1330,230 @@
       unsubscribeOrgChart = null;
     }
   }
+
+  // ==========================================
+  // 📇 구역원 상세 정보 (이름/생년월일/연락처/사는곳)
+  //    - Firestore 컬렉션: zoneMemberInfo (문서 ID = 이름)
+  //    - Firestore 규칙에 아래 항목 추가가 필요합니다:
+  //      match /zoneMemberInfo/{docId} { allow read, write: if request.auth != null; }
+  // ==========================================
+  const memberInfoCol = db.collection('zoneMemberInfo');
+  let memberInfoCache = {};
+  let unsubscribeMemberInfo = null;
+
+  function startMemberInfoSync() {
+    if (unsubscribeMemberInfo) return;
+    unsubscribeMemberInfo = memberInfoCol.onSnapshot(
+      snap => {
+        memberInfoCache = {};
+        snap.forEach(doc => { memberInfoCache[doc.id] = doc.data(); });
+        renderMemberInfoList();
+      },
+      err => console.error('구역원 정보 동기화 오류:', err)
+    );
+  }
+
+  function stopMemberInfoSync() {
+    if (unsubscribeMemberInfo) {
+      unsubscribeMemberInfo();
+      unsubscribeMemberInfo = null;
+    }
+  }
+
+  // 현재 조직도에 실제로 입력되어 있는 이름들만 모아서 반환 (중복/빈값/기본안내문구 제외)
+  function getOrgChartNames() {
+    const placeholders = new Set(['이름 입력', '구역원']);
+    const names = new Set();
+    document.querySelectorAll('.leader-name, .members .member').forEach(el => {
+      const val = el.innerText.trim();
+      if (val && !placeholders.has(val)) names.add(val);
+    });
+    return Array.from(names).sort((a, b) => a.localeCompare(b, 'ko'));
+  }
+
+  // ---- 이름 클릭 시 정보 보기 팝업 ----
+  const memberViewOverlay = document.getElementById('memberViewOverlay');
+  const viewPopupName = document.getElementById('viewPopupName');
+  const viewPopupBody = document.getElementById('viewPopupBody');
+  const viewPopupEmpty = document.getElementById('viewPopupEmpty');
+  const viewPopupBirth = document.getElementById('viewPopupBirth');
+  const viewPopupPhone = document.getElementById('viewPopupPhone');
+  const viewPopupAddress = document.getElementById('viewPopupAddress');
+
+  function openMemberView(name) {
+    viewPopupName.textContent = name;
+    const info = memberInfoCache[name];
+    if (info) {
+      viewPopupBirth.textContent = info.birth || '-';
+      viewPopupPhone.textContent = info.phone || '-';
+      viewPopupAddress.textContent = info.address || '-';
+      viewPopupBody.classList.remove('hidden');
+      viewPopupEmpty.classList.add('hidden');
+    } else {
+      viewPopupBody.classList.add('hidden');
+      viewPopupEmpty.classList.remove('hidden');
+    }
+    memberViewOverlay.classList.remove('hidden');
+  }
+
+  document.getElementById('viewPopupCloseBtn').addEventListener('click', () => {
+    memberViewOverlay.classList.add('hidden');
+  });
+  memberViewOverlay.addEventListener('click', (e) => {
+    if (e.target === memberViewOverlay) memberViewOverlay.classList.add('hidden');
+  });
+
+  // 조직도 이름칸 클릭 (편집 모드가 아닐 때만 정보 보기 팝업)
+  document.getElementById('zonesGrid').addEventListener('click', (e) => {
+    if (editing) return;
+    const nameEl = e.target.closest('.leader-name, .members .member');
+    if (!nameEl) return;
+    const name = nameEl.innerText.trim();
+    if (!name || name === '이름 입력' || name === '구역원') return;
+    openMemberView(name);
+  });
+
+  // ---- 구역원 정보 입력 모달 ----
+  const memberInfoOverlay = document.getElementById('memberInfoOverlay');
+  const memberInfoBtn = document.getElementById('memberInfoBtn');
+  const memberSearchInput = document.getElementById('memberSearchInput');
+  const memberSearchResults = document.getElementById('memberSearchResults');
+  const memberFormName = document.getElementById('memberFormName');
+  const memberFormBirth = document.getElementById('memberFormBirth');
+  const memberFormPhone = document.getElementById('memberFormPhone');
+  const memberFormAddress = document.getElementById('memberFormAddress');
+  const memberFormSaveBtn = document.getElementById('memberFormSaveBtn');
+  const memberInfoList = document.getElementById('memberInfoList');
+  let selectedMemberName = null;
+
+  function resetMemberForm() {
+    selectedMemberName = null;
+    memberFormName.textContent = '이름을 검색해서 선택하세요';
+    memberFormBirth.value = '';
+    memberFormPhone.value = '';
+    memberFormAddress.value = '';
+    memberFormSaveBtn.disabled = true;
+    memberSearchInput.value = '';
+    memberSearchResults.classList.add('hidden');
+  }
+
+  function selectMemberName(name) {
+    selectedMemberName = name;
+    memberFormName.textContent = name;
+    const info = memberInfoCache[name];
+    memberFormBirth.value = (info && info.birth) || '';
+    memberFormPhone.value = (info && info.phone) || '';
+    memberFormAddress.value = (info && info.address) || '';
+    memberFormSaveBtn.disabled = false;
+    memberSearchInput.value = name;
+    memberSearchResults.classList.add('hidden');
+  }
+
+  memberInfoBtn.addEventListener('click', () => {
+    resetMemberForm();
+    renderMemberInfoList();
+    memberInfoOverlay.classList.remove('hidden');
+  });
+
+  document.getElementById('memberInfoDoneBtn').addEventListener('click', () => {
+    memberInfoOverlay.classList.add('hidden');
+  });
+  memberInfoOverlay.addEventListener('click', (e) => {
+    if (e.target === memberInfoOverlay) memberInfoOverlay.classList.add('hidden');
+  });
+
+  memberSearchInput.addEventListener('input', () => {
+    const q = memberSearchInput.value.trim().toLowerCase();
+    const names = getOrgChartNames();
+    const matches = q ? names.filter(n => n.toLowerCase().includes(q)) : names;
+
+    if (matches.length === 0) {
+      memberSearchResults.innerHTML = '<div class="info-search-empty">조직도에서 이름을 찾을 수 없습니다.</div>';
+    } else {
+      memberSearchResults.innerHTML = matches
+        .slice(0, 10)
+        .map(n => `<div class="result-item" data-name="${n}">${n}</div>`)
+        .join('');
+    }
+    memberSearchResults.classList.remove('hidden');
+  });
+
+  memberSearchResults.addEventListener('click', (e) => {
+    const item = e.target.closest('.result-item');
+    if (!item) return;
+    selectMemberName(item.dataset.name);
+  });
+
+  memberSearchInput.addEventListener('focus', () => {
+    memberSearchInput.dispatchEvent(new Event('input'));
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.info-search-wrap')) {
+      memberSearchResults.classList.add('hidden');
+    }
+  });
+
+  memberFormSaveBtn.addEventListener('click', () => {
+    if (!selectedMemberName) return;
+    memberFormSaveBtn.disabled = true;
+    memberInfoCol.doc(selectedMemberName).set({
+      name: selectedMemberName,
+      birth: memberFormBirth.value.trim(),
+      phone: memberFormPhone.value.trim(),
+      address: memberFormAddress.value.trim()
+    })
+      .then(() => {
+        showToast('저장되었습니다', false);
+        resetMemberForm();
+      })
+      .catch(err => {
+        console.error('구역원 정보 저장 실패:', err);
+        showToast('저장에 실패했습니다.', true);
+        memberFormSaveBtn.disabled = false;
+      });
+  });
+
+  function renderMemberInfoList() {
+    const names = Object.keys(memberInfoCache).sort((a, b) => a.localeCompare(b, 'ko'));
+    if (names.length === 0) {
+      memberInfoList.innerHTML = '<div class="info-list-empty">아직 등록된 정보가 없습니다.</div>';
+      return;
+    }
+    memberInfoList.innerHTML = names.map(name => {
+      const info = memberInfoCache[name];
+      const summary = [info.birth, info.phone, info.address].filter(Boolean).join(' / ') || '정보 없음';
+      return `
+        <div class="info-list-item">
+          <span class="ili-name">${name}</span>
+          <span class="ili-summary">${summary}</span>
+          <button type="button" class="ili-edit" data-name="${name}">수정</button>
+          <button type="button" class="ili-delete" data-name="${name}">삭제</button>
+        </div>`;
+    }).join('');
+  }
+
+  memberInfoList.addEventListener('click', (e) => {
+    const editBtnEl = e.target.closest('.ili-edit');
+    const delBtnEl = e.target.closest('.ili-delete');
+    if (editBtnEl) {
+      selectMemberName(editBtnEl.dataset.name);
+      return;
+    }
+    if (delBtnEl) {
+      const name = delBtnEl.dataset.name;
+      if (!confirm(`'${name}'님의 정보를 삭제하시겠습니까?`)) return;
+      memberInfoCol.doc(name).delete()
+        .then(() => {
+          showToast('삭제되었습니다', false);
+          if (selectedMemberName === name) resetMemberForm();
+        })
+        .catch(err => {
+          console.error('삭제 실패:', err);
+          showToast('삭제에 실패했습니다.', true);
+        });
+    }
+  });
 
   // ---- 수정 버튼 토글 ----
   const editBtn = document.getElementById('editBtn');
