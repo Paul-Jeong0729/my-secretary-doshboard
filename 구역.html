@@ -924,7 +924,8 @@
           <div class="view-popup-row"><span class="vp-label">연락처</span><span class="vp-value" id="viewPopupPhone">-</span></div>
           <div class="view-popup-row"><span class="vp-label">사는곳</span><span class="vp-value" id="viewPopupAddress">-</span></div>
         </div>
-        <button type="button" class="view-popup-close" id="viewPopupCloseBtn">닫기</button>
+        <div class="view-popup-empty hidden" id="viewPopupEmpty">등록된 정보가 없습니다.</div>
+                <button type="button" class="view-popup-close" id="viewPopupCloseBtn">닫기</button>
       </div>
     </div>
 
@@ -1381,17 +1382,11 @@
 
   function openMemberView(name) {
     viewPopupName.textContent = name;
-    const info = memberInfoCache[name];
-    if (info) {
-      viewPopupBirth.textContent = info.birth || '-';
-      viewPopupPhone.textContent = info.phone || '-';
-      viewPopupAddress.textContent = info.address || '-';
-      viewPopupBody.classList.remove('hidden');
-      viewPopupEmpty.classList.add('hidden');
-    } else {
-      viewPopupBody.classList.add('hidden');
-      viewPopupEmpty.classList.remove('hidden');
-    }
+    const info = memberInfoCache[name] || {};
+    viewPopupBirth.textContent = info.birth || '-';
+    viewPopupPhone.textContent = info.phone || '-';
+    viewPopupAddress.textContent = info.address || '-';
+    viewPopupBody.classList.remove('hidden');
     memberViewOverlay.classList.remove('hidden');
   }
 
