@@ -50,10 +50,34 @@ function renderCalendar() {
 
     // 일정이 있는 날 체크 (MM-DD 또는 YYYY-MM-DD 대응)
     const hasEvent = schedules.some(s => s.date === dateKeyMMDD || s.date === dateKeyYYYY);
-    if (hasEvent) {
+
+    // 🎂 구역원 생일 체크 (매년 반복되므로 MM-DD 기준으로만 대응)
+    const bdayNames = (typeof getBirthdayNames === 'function') ? getBirthdayNames(dateKeyMMDD) : [];
+    const hasBirthday = bdayNames.length > 0;
+
+    if (hasEvent || hasBirthday) {
       const dot = document.createElement('div');
       dot.className = 'event-dot';
       dayDiv.appendChild(dot);
+    }
+
+    if (hasBirthday) {
+      const cake = document.createElement('span');
+      cake.className = 'birthday-mark';
+      cake.textContent = '🎂';
+      cake.title = bdayNames.map(n => n + ' 생일').join(', ');
+      dayDiv.appendChild(cake);
+    }
+
+    // 📅 10일마다(10일, 20일, 30일) 음력 날짜 표시
+    if (day % 10 === 0 && typeof LunarCalendar !== 'undefined') {
+      const lunarText = LunarCalendar.formatLunarShort(year, month + 1, day);
+      if (lunarText) {
+        const lunarEl = document.createElement('span');
+        lunarEl.className = 'lunar-label';
+        lunarEl.textContent = lunarText;
+        dayDiv.appendChild(lunarEl);
+      }
     }
 
     // 선택된 날짜 표기
@@ -81,13 +105,22 @@ function showSchedulesForDate(dateKeyMMDD, dateKeyYYYY) {
 
   const schedules = typeof loadSchedules === 'function' ? loadSchedules() : [];
   const filtered = schedules.filter(s => s.date === dateKeyMMDD || s.date === dateKeyYYYY);
+  const bdayNames = (typeof getBirthdayNames === 'function') ? getBirthdayNames(dateKeyMMDD) : [];
 
   listContainer.innerHTML = '';
 
-  if (filtered.length === 0) {
+  if (filtered.length === 0 && bdayNames.length === 0) {
     listContainer.innerHTML = '<p style="color: var(--sub-text); font-size: 0.8rem; margin:0;">해당 날짜에 등록된 일정이 없습니다.</p>';
     return;
   }
+
+  // 🎂 생일 항목 먼저 표시
+  bdayNames.forEach(name => {
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'holo-schedule-item birthday-item';
+    itemDiv.innerHTML = `<span>🎂 ${name} 생일</span>`;
+    listContainer.appendChild(itemDiv);
+  });
 
   filtered.forEach(item => {
     const itemDiv = document.createElement('div');
@@ -138,5 +171,13 @@ document.addEventListener('DOMContentLoaded', () => {
       currentCalDate.setMonth(currentCalDate.getMonth() + 1);
       renderCalendar();
     });
+  }
+});
+
+// 🎂 생일 정보가 (Firestore 실시간 동기화로) 갱신되면, 달력이 열려있는 경우 다시 그림
+window.addEventListener('birthdaysUpdated', () => {
+  const modal = document.getElementById('calendar-modal');
+  if (modal && !modal.classList.contains('hidden')) {
+    renderCalendar();
   }
 });

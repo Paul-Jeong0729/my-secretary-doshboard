@@ -49,17 +49,31 @@ function renderSchedules() {
   const now = new Date();
   const pad = (n) => String(n).padStart(2, '0');
   const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const todayMMDD = `${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 
   const schedules = loadSchedules().filter(item => item.type === 'memo' || item.date === todayStr);
+  const birthdayNames = (typeof getBirthdayNames === 'function') ? getBirthdayNames(todayMMDD) : [];
   const listContainer = document.getElementById('schedule-list');
   if (!listContainer) return;
 
   listContainer.innerHTML = '';
 
-  if (schedules.length === 0) {
+  if (schedules.length === 0 && birthdayNames.length === 0) {
     listContainer.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem;">오늘 일정이 없습니다.</p>';
     return;
   }
+
+  // 🎂 오늘 생일인 구역원 항목 (삭제 버튼 없이 표시)
+  birthdayNames.forEach((name) => {
+    const div = document.createElement('div');
+    div.className = 'schedule-item birthday-item';
+    div.innerHTML = `
+      <div class="schedule-info">
+        <span class="schedule-title">🎂 ${name} 생일</span>
+      </div>
+    `;
+    listContainer.appendChild(div);
+  });
 
   schedules.forEach((item) => {
     const isMemo = item.type === 'memo';
@@ -190,3 +204,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 로그인 완료(authReady) 시 Firestore 실시간 동기화 시작
 window.addEventListener('authReady', startScheduleSync);
+
+// 🎂 생일 정보가 갱신되면 오늘 일정 목록도 다시 그림
+window.addEventListener('birthdaysUpdated', () => {
+  if (typeof renderSchedules === 'function') renderSchedules();
+});
