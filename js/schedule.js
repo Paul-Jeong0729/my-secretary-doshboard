@@ -44,16 +44,20 @@ function loadSchedules() {
   return currentSchedules;
 }
 
-// 대시보드 메인 목록 렌더링
+// 대시보드 메인 목록 렌더링 (오늘 날짜의 일정/메모만 표시)
 function renderSchedules() {
-  const schedules = loadSchedules();
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+  const schedules = loadSchedules().filter(item => item.type === 'memo' || item.date === todayStr);
   const listContainer = document.getElementById('schedule-list');
   if (!listContainer) return;
 
   listContainer.innerHTML = '';
 
   if (schedules.length === 0) {
-    listContainer.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem;">일정이 없습니다.</p>';
+    listContainer.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem;">오늘 일정이 없습니다.</p>';
     return;
   }
 
