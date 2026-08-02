@@ -848,42 +848,10 @@
       .then(()=>{
         showToast('저장되었습니다', false);
         closeAllFormModals();
-        // 사랑방 = O 로 체크된 경우, 사랑방 항목에 자동으로 기록
-        if(payload.sarangbang === 'O'){
-          syncToSarangbang(numberVal, nameVal, noteVal);
-        }
       })
       .catch(err=>{ console.error(err); showToast('저장에 실패했습니다. 네트워크를 확인해주세요.', true); })
       .finally(()=>{ btn.disabled = false; });
   });
-
-  // ---- 결석 기록 중 '사랑방 = O' 체크 시 사랑방 항목에 자동 반영 ----
-  function syncToSarangbang(numberVal, nameVal, noteVal){
-    const sarangCollection = SECTIONS.find(s=>s.id==='sarang').collection;
-    const existing = (sectionData['sarang'] || []).find(r => (r.name || '').trim() === nameVal);
-
-    if(existing){
-      db.collection(sarangCollection).doc(existing.id).update({
-        number: numberVal,
-        note: noteVal,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).catch(err=> console.error('사랑방 자동 반영 오류:', err));
-    } else {
-      db.collection(sarangCollection).add({
-        number: numberVal,
-        name: nameVal,
-        instructor: '',
-        evangelist: '',
-        leader: '',
-        teacher: '',
-        leader2: '',
-        note: noteVal,
-        visitDates: [],
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).catch(err=> console.error('사랑방 자동 반영 오류:', err));
-    }
-  }
 
   // ---- 사랑방 저장 ----
   document.getElementById('sarangConfirmBtn').addEventListener('click', ()=>{
