@@ -342,6 +342,12 @@
           </div>
         </div>
       </div>
+      <div class="form-row-line">
+        <div class="form-group full">
+          <label>특이사항</label>
+          <textarea id="a_note" placeholder="특이사항을 입력하세요"></textarea>
+        </div>
+      </div>
       <div class="modal-actions">
         <button type="button" class="modal-confirm-btn" id="absenceConfirmBtn">완료</button>
         <button type="button" class="modal-cancel-btn" id="absenceCancelBtn">취소</button>
@@ -365,6 +371,12 @@
       <div class="form-row-line">
         <div class="form-group"><label>교사</label><input type="text" id="s_teacher" placeholder="교사"></div>
         <div class="form-group"><label>인도자2</label><input type="text" id="s_leader2" placeholder="인도자2"></div>
+      </div>
+      <div class="form-row-line">
+        <div class="form-group full">
+          <label>특이사항</label>
+          <textarea id="s_note" placeholder="특이사항을 입력하세요"></textarea>
+        </div>
       </div>
       <div class="modal-actions">
         <button type="button" class="modal-confirm-btn" id="sarangConfirmBtn">완료</button>
@@ -622,7 +634,7 @@
         const sarangHtml = r.sarangbang==='O' ? fieldChip('사랑방', 'O', 'sarang-o') : '';
         return `
           <div class="record-card">
-            <div class="record-row">
+            <div class="record-row with-second-row">
               ${fieldChip('번호', idx+1, 'num')}
               ${fieldChip('구역', `${r.number!==undefined && r.number!=='' ? r.number : '-'}구역`)}
               ${fieldChip('이름', r.name)}
@@ -633,6 +645,7 @@
                 <button type="button" class="delete-mini-btn" data-delete="${sectionId}" data-id="${r.id}">삭제</button>
               </div>
             </div>
+            <div class="note-text">${r.note ? escapeHtml(r.note) : '특이사항 없음'}</div>
           </div>
         `;
       }).join('');
@@ -664,6 +677,7 @@
               <input type="date" id="cd-input-${sectionId}-${r.id}">
               <button type="button" class="add-date-btn" data-add-date="${sectionId}" data-id="${r.id}">+ 날짜 추가</button>
             </div>
+            ${r.note ? `<div class="note-text">${escapeHtml(r.note)}</div>` : ''}
           </div>
         `;
       }).join('');
@@ -748,6 +762,7 @@
       document.getElementById('a_name').value = record ? (record.name||'') : '';
       document.getElementById('a_reason').value = record ? (record.reason||'사유출석') : '사유출석';
       document.querySelectorAll('input[name="a_sarang"]').forEach(r=> r.checked = record ? (r.value===record.sarangbang) : false);
+      document.getElementById('a_note').value = record ? (record.note||'') : '';
       document.getElementById('absenceModalOverlay').classList.remove('hidden');
       document.getElementById('a_number').focus();
       return;
@@ -762,6 +777,7 @@
       document.getElementById('s_leader').value = record ? (record.leader||'') : '';
       document.getElementById('s_teacher').value = record ? (record.teacher||'') : '';
       document.getElementById('s_leader2').value = record ? (record.leader2||'') : '';
+      document.getElementById('s_note').value = record ? (record.note||'') : '';
       document.getElementById('sarangModalOverlay').classList.remove('hidden');
       document.getElementById('s_number').focus();
       return;
@@ -803,6 +819,7 @@
     const nameVal = document.getElementById('a_name').value.trim();
     const reasonVal = document.getElementById('a_reason').value;
     const sarangEl = document.querySelector('input[name="a_sarang"]:checked');
+    const noteVal = document.getElementById('a_note').value.trim();
 
     if(!nameVal){ showToast('이름을 입력해주세요.', true); return; }
 
@@ -811,6 +828,7 @@
       name: nameVal,
       reason: reasonVal,
       sarangbang: sarangEl ? sarangEl.value : '',
+      note: noteVal,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
@@ -827,10 +845,45 @@
     }
 
     promise
-      .then(()=>{ showToast('저장되었습니다', false); closeAllFormModals(); })
+      .then(()=>{
+        showToast('저장되었습니다', false);
+        closeAllFormModals();
+        // 사랑방 = O 로 체크된 경우, 사랑방 항목에 자동으로 기록
+        if(payload.sarangbang === 'O'){
+          syncToSarangbang(numberVal, nameVal, noteVal);
+        }
+      })
       .catch(err=>{ console.error(err); showToast('저장에 실패했습니다. 네트워크를 확인해주세요.', true); })
       .finally(()=>{ btn.disabled = false; });
   });
+
+  // ---- 결석 기록 중 '사랑방 = O' 체크 시 사랑방 항목에 자동 반영 ----
+  function syncToSarangbang(numberVal, nameVal, noteVal){
+    const sarangCollection = SECTIONS.find(s=>s.id==='sarang').collection;
+    const existing = (sectionData['sarang'] || []).find(r => (r.name || '').trim() === nameVal);
+
+    if(existing){
+      db.collection(sarangCollection).doc(existing.id).update({
+        number: numberVal,
+        note: noteVal,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(err=> console.error('사랑방 자동 반영 오류:', err));
+    } else {
+      db.collection(sarangCollection).add({
+        number: numberVal,
+        name: nameVal,
+        instructor: '',
+        evangelist: '',
+        leader: '',
+        teacher: '',
+        leader2: '',
+        note: noteVal,
+        visitDates: [],
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(err=> console.error('사랑방 자동 반영 오류:', err));
+    }
+  }
 
   // ---- 사랑방 저장 ----
   document.getElementById('sarangConfirmBtn').addEventListener('click', ()=>{
@@ -847,6 +900,7 @@
       leader: document.getElementById('s_leader').value.trim(),
       teacher: document.getElementById('s_teacher').value.trim(),
       leader2: document.getElementById('s_leader2').value.trim(),
+      note: document.getElementById('s_note').value.trim(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
