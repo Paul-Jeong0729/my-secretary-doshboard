@@ -672,7 +672,6 @@
         const snap = await db.collection('bible_verses')
           .where('book', '==', book.id)
           .where('chapter', '==', chapter)
-          .orderBy('verse')
           .get();
 
         if (snap.empty) {
@@ -685,8 +684,11 @@
           return;
         }
 
+        // orderBy를 쿼리에 쓰지 않기 때문에(복합 색인 불필요) 절 번호 순으로 직접 정렬합니다.
+        const docs = snap.docs.slice().sort((a, b) => a.data().verse - b.data().verse);
+
         verseList.innerHTML = '';
-        snap.forEach(doc => {
+        docs.forEach(doc => {
           const v = doc.data();
           const row = document.createElement('div');
           row.className = 'verse-row' + (v.highlight ? ' ' + v.highlight : '');
