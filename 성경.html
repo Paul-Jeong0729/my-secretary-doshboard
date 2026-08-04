@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📖 성경 읽기표 - My Secretary DashBoard</title>
+<link rel="stylesheet" href="css/main.css">
+
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg-color, #0a0f1a);
+    color: var(--text-color, #f8fafc);
+    font-family: inherit;
+  }
+
+  /* ---------- 로그인 확인 중 ---------- */
+  #authCheck {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    color: var(--sub-text, #94a3b8);
+    font-size: 0.95rem;
+  }
+  .hidden { display: none !important; }
+
+  /* ---------- 헤더 ---------- */
+  .bible-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color, #334155);
+    background: var(--card-bg, #1e293b);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .back-btn {
+    color: var(--sub-text, #94a3b8);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color, #334155);
+    transition: 0.2s;
+    white-space: nowrap;
+  }
+  .back-btn:hover { color: var(--text-color, #f8fafc); border-color: var(--accent-color); }
+
+  .bible-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--accent-color);
+    flex: 1;
+    min-width: 180px;
+  }
+  .version-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--sub-text, #94a3b8);
+    border: 1px solid var(--border-color, #334155);
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .header-actions { display: flex; gap: 8px; }
+  .header-btn {
+    background: transparent;
+    color: var(--accent-color);
+    border: 1px solid var(--accent-color);
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: 0.2s;
+    white-space: nowrap;
+  }
+  .header-btn:hover { background: var(--accent-color); color: #000; }
+
+  /* ---------- 검색 패널 ---------- */
+  #searchPanel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 20px;
+    background: rgba(148, 163, 184, 0.06);
+    border-bottom: 1px solid var(--border-color, #334155);
+  }
+  #searchInput {
+    flex: 1;
+    min-width: 180px;
+    background: rgba(10,15,26,0.6);
+    border: 1px solid var(--border-color, #334155);
+    border-radius: 8px;
+    color: var(--text-color, #f8fafc);
+    padding: 9px 12px;
+    font-size: 0.9rem;
+    outline: none;
+  }
+  #searchInput:focus { border-color: var(--accent-color); }
+  #searchResults {
+    width: 100%;
+    max-height: 260px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .search-result-item {
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: var(--card-bg, #1e293b);
+    cursor: pointer;
+    font-size: 0.85rem;
+    border: 1px solid transparent;
+    transition: 0.15s;
+  }
+  .search-result-item:hover { border-color: var(--accent-color); }
+  .search-result-loc {
+    color: var(--accent-color);
+    font-weight: bold;
+    margin-right: 8px;
+    font-size: 0.8rem;
+  }
+  .search-empty {
+    color: var(--sub-text, #94a3b8);
+    font-size: 0.85rem;
+    padding: 6px 2px;
+  }
+
+  /* ---------- 메인 레이아웃 ---------- */
+  .main-layout {
+    display: flex;
+    gap: 0;
+    align-items: flex-start;
+    min-height: calc(100vh - 64px);
+  }
+
+  .book-panel {
+    width: 220px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border-color, #334155);
+    padding: 14px 10px;
+    max-height: calc(100vh - 64px);
+    overflow-y: auto;
+    position: sticky;
+    top: 64px;
+  }
+
+  .testament-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .testament-tab {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--border-color, #334155);
+    color: var(--sub-text, #94a3b8);
+    padding: 8px 0;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .testament-tab.active {
+    background: var(--accent-color);
+    color: #000;
+    border-color: var(--accent-color);
+  }
+
+  .book-list { display: flex; flex-direction: column; gap: 2px; }
+  .book-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.87rem;
+    color: var(--text-color, #f8fafc);
+    transition: 0.15s;
+  }
+  .book-item:hover { background: rgba(148, 163, 184, 0.12); }
+  .book-item.active {
+    background: rgba(148, 163, 184, 0.18);
+    color: var(--accent-color);
+    font-weight: bold;
+  }
+  .book-item .chapter-count {
+    font-size: 0.72rem;
+    color: var(--sub-text, #94a3b8);
+  }
+
+  .chapter-panel {
+    width: 200px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border-color, #334155);
+    padding: 14px 12px;
+    max-height: calc(100vh - 64px);
+    overflow-y: auto;
+    position: sticky;
+    top: 64px;
+  }
+  .chapter-panel-title {
+    color: var(--accent-color);
+    font-size: 0.95rem;
+    font-weight: bold;
+    margin: 0 0 10px;
+  }
+  .chapter-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+  .chapter-btn {
+    background: rgba(148, 163, 184, 0.08);
+    border: 1px solid var(--border-color, #334155);
+    color: var(--text-color, #f8fafc);
+    border-radius: 6px;
+    padding: 8px 0;
+    font-size: 0.8rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .chapter-btn:hover { border-color: var(--accent-color); }
+  .chapter-btn.active {
+    background: var(--accent-color);
+    color: #000;
+    border-color: var(--accent-color);
+  }
+  .chapter-panel-placeholder {
+    color: var(--sub-text, #94a3b8);
+    font-size: 0.85rem;
+  }
+
+  .reading-panel {
+    flex: 1;
+    min-width: 0;
+    padding: 20px 24px;
+  }
+  .reading-panel-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .reading-panel-header h2 {
+    margin: 0;
+    color: var(--accent-color);
+    font-size: 1.15rem;
+  }
+  .reading-panel-hint {
+    font-size: 0.78rem;
+    color: var(--sub-text, #94a3b8);
+  }
+
+  .empty-state {
+    color: var(--sub-text, #94a3b8);
+    font-size: 0.9rem;
+    padding: 40px 10px;
+    text-align: center;
+    line-height: 1.8;
+  }
+  .empty-state .header-btn { margin-top: 10px; }
+
+  .verse-row {
+    display: flex;
+    gap: 10px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    line-height: 1.7;
+    font-size: 0.95rem;
+    transition: 0.15s;
+  }
+  .verse-row:hover { background: rgba(148, 163, 184, 0.08); }
+  .verse-num {
+    color: var(--accent-color);
+    font-weight: bold;
+    font-size: 0.8rem;
+    min-width: 22px;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+  .verse-text { flex: 1; }
+  .verse-row.hl-yellow { background: rgba(250, 204, 21, 0.28); }
+  .verse-row.hl-green  { background: rgba(163, 230, 53, 0.28); }
+  .verse-row.hl-pink   { background: rgba(244, 114, 182, 0.28); }
+  .verse-row.flash { outline: 2px solid var(--accent-color); }
+
+  /* ---------- 모달 (본문 입력) ---------- */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(5,10,20,0.85);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 16px;
+  }
+  .modal-card {
+    width: 520px;
+    max-width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: var(--card-bg, #1e293b);
+    border: 1.5px solid var(--accent-color);
+    border-radius: 14px;
+    padding: 22px 22px 18px;
+  }
+  .modal-card h2 {
+    margin: 0 0 16px;
+    color: var(--accent-color);
+    font-size: 1.1rem;
+    text-align: center;
+  }
+  .modal-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .modal-form-group label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--sub-text, #94a3b8);
+  }
+  .modal-form-group select,
+  .modal-form-group textarea {
+    width: 100%;
+    background: rgba(10,15,26,0.6);
+    border: 1px solid var(--border-color, #334155);
+    border-radius: 8px;
+    color: var(--text-color, #f8fafc);
+    font-size: 0.88rem;
+    padding: 9px 10px;
+    outline: none;
+    font-family: inherit;
+  }
+  .modal-form-group textarea {
+    min-height: 220px;
+    line-height: 1.6;
+    resize: vertical;
+  }
+  .modal-hint {
+    font-size: 0.75rem;
+    color: var(--sub-text, #94a3b8);
+    line-height: 1.6;
+    margin: 0 0 14px;
+  }
+  .modal-footer { display: flex; gap: 8px; }
+  .modal-footer button {
+    flex: 1;
+    padding: 10px 0;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border: none;
+  }
+  #adminSaveBtn { background: var(--accent-color); color: #000; }
+  #adminCancelBtn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border-color, #334155) !important;
+    color: var(--sub-text, #94a3b8);
+  }
+  .modal-status { font-size: 0.8rem; margin: 8px 0 0; min-height: 18px; }
+  .modal-status.ok { color: #a3e635; }
+  .modal-status.err { color: #f87171; }
+
+  @media (max-width: 820px) {
+    .main-layout { flex-direction: column; }
+    .book-panel, .chapter-panel {
+      width: 100%;
+      position: static;
+      max-height: none;
+      border-right: none;
+      border-bottom: 1px solid var(--border-color, #334155);
+    }
+    .book-list { max-height: 220px; overflow-y: auto; }
+  }
+</style>
+</head>
+<body>
+
+  <div id="authCheck">로그인 확인 중...</div>
+
+  <div id="bibleApp" class="hidden">
+    <header class="bible-header">
+      <a href="index.html" class="back-btn">← 대시보드</a>
+      <h1 class="bible-title">📖 성경 읽기표 <span class="version-badge">개역한글</span></h1>
+      <div class="header-actions">
+        <button type="button" class="header-btn" id="btn-search-toggle">🔍 검색</button>
+        <button type="button" class="header-btn" id="btn-admin-toggle">✏️ 본문 입력</button>
+      </div>
+    </header>
+
+    <div id="searchPanel" class="hidden">
+      <input type="text" id="searchInput" placeholder="검색할 단어를 입력하세요 (예: 사랑, 은혜, 믿음)...">
+      <button type="button" class="header-btn" id="searchBtn">검색</button>
+      <div id="searchResults"></div>
+    </div>
+
+    <div class="main-layout">
+      <!-- 구약/신약 + 권 목록 -->
+      <aside class="book-panel">
+        <div class="testament-tabs">
+          <button type="button" class="testament-tab active" data-testament="OT">구약</button>
+          <button type="button" class="testament-tab" data-testament="NT">신약</button>
+        </div>
+        <div id="bookList" class="book-list"></div>
+      </aside>
+
+      <!-- 장 선택 -->
+      <section class="chapter-panel" id="chapterPanel">
+        <p class="chapter-panel-placeholder">왼쪽에서 책을 선택하세요.</p>
+      </section>
+
+      <!-- 본문 읽기 영역 -->
+      <section class="reading-panel" id="readingPanel">
+        <div class="empty-state">
+          왼쪽에서 권과 장을 선택하면<br>본문이 여기에 표시됩니다.<br><br>
+          구절을 클릭하면 형광펜(노랑 → 초록 → 분홍 → 해제) 순으로 표시할 수 있어요.
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- 본문 입력 모달 -->
+  <div id="adminModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h2>✏️ 본문 입력</h2>
+      <div class="modal-form-group">
+        <label for="adminBookSelect">권 선택</label>
+        <select id="adminBookSelect"></select>
+      </div>
+      <div class="modal-form-group">
+        <label for="adminChapterSelect">장 선택</label>
+        <select id="adminChapterSelect"></select>
+      </div>
+      <div class="modal-form-group">
+        <label for="adminTextarea">본문 붙여넣기</label>
+        <textarea id="adminTextarea" placeholder="1 태초에 하나님이 천지를 창조하시니라&#10;2 땅이 혼돈하고 공허하며 흑암이 깊음 위에 있고&#10;3 하나님이 이르시되 빛이 있으라 하시니 빛이 있었고"></textarea>
+      </div>
+      <p class="modal-hint">
+        한 줄에 <strong>"절번호 (공백) 본문"</strong> 형식으로 붙여넣으세요. 이미 입력된 절 번호는 새 내용으로 덮어씌워집니다.
+      </p>
+      <p class="modal-status" id="adminStatus"></p>
+      <div class="modal-footer">
+        <button type="button" id="adminSaveBtn">저장</button>
+        <button type="button" id="adminCancelBtn">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    // ⚠️ 다른 페이지와 동일한 Firebase 프로젝트 설정값
+    const firebaseConfig = {
+      apiKey: "AIzaSyBVXo5NYSyumJxYFFE2hrIaTEJiHIyq8P0",
+      authDomain: "my-secretary-1df10.firebaseapp.com",
+      projectId: "my-secretary-1df10",
+      storageBucket: "my-secretary-1df10.firebasestorage.app",
+      messagingSenderId: "165274759452",
+      appId: "1:165274759452:web:bbfa7de28a08f8e11b4ad9"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // ==========================================
+    // 📚 성경 66권 메타데이터 (권 ID / 이름 / 구약·신약 / 장 수)
+    // 본문(절 내용)은 포함하지 않으며, Firestore 'bible_verses' 컬렉션에서 불러옵니다.
+    // ==========================================
+    const BIBLE_BOOKS = [
+      // 구약 (39권)
+      { id:'gen', name:'창세기', testament:'OT', chapters:50 },
+      { id:'exo', name:'출애굽기', testament:'OT', chapters:40 },
+      { id:'lev', name:'레위기', testament:'OT', chapters:27 },
+      { id:'num', name:'민수기', testament:'OT', chapters:36 },
+      { id:'deu', name:'신명기', testament:'OT', chapters:34 },
+      { id:'jos', name:'여호수아', testament:'OT', chapters:24 },
+      { id:'jdg', name:'사사기', testament:'OT', chapters:21 },
+      { id:'rut', name:'룻기', testament:'OT', chapters:4 },
+      { id:'1sa', name:'사무엘상', testament:'OT', chapters:31 },
+      { id:'2sa', name:'사무엘하', testament:'OT', chapters:24 },
+      { id:'1ki', name:'열왕기상', testament:'OT', chapters:22 },
+      { id:'2ki', name:'열왕기하', testament:'OT', chapters:25 },
+      { id:'1ch', name:'역대상', testament:'OT', chapters:29 },
+      { id:'2ch', name:'역대하', testament:'OT', chapters:36 },
+      { id:'ezr', name:'에스라', testament:'OT', chapters:10 },
+      { id:'neh', name:'느헤미야', testament:'OT', chapters:13 },
+      { id:'est', name:'에스더', testament:'OT', chapters:10 },
+      { id:'job', name:'욥기', testament:'OT', chapters:42 },
+      { id:'psa', name:'시편', testament:'OT', chapters:150 },
+      { id:'pro', name:'잠언', testament:'OT', chapters:31 },
+      { id:'ecc', name:'전도서', testament:'OT', chapters:12 },
+      { id:'sng', name:'아가', testament:'OT', chapters:8 },
+      { id:'isa', name:'이사야', testament:'OT', chapters:66 },
+      { id:'jer', name:'예레미야', testament:'OT', chapters:52 },
+      { id:'lam', name:'예레미야애가', testament:'OT', chapters:5 },
+      { id:'eze', name:'에스겔', testament:'OT', chapters:48 },
+      { id:'dan', name:'다니엘', testament:'OT', chapters:12 },
+      { id:'hos', name:'호세아', testament:'OT', chapters:14 },
+      { id:'joe', name:'요엘', testament:'OT', chapters:3 },
+      { id:'amo', name:'아모스', testament:'OT', chapters:9 },
+      { id:'oba', name:'오바댜', testament:'OT', chapters:1 },
+      { id:'jon', name:'요나', testament:'OT', chapters:4 },
+      { id:'mic', name:'미가', testament:'OT', chapters:7 },
+      { id:'nah', name:'나훔', testament:'OT', chapters:3 },
+      { id:'hab', name:'하박국', testament:'OT', chapters:3 },
+      { id:'zep', name:'스바냐', testament:'OT', chapters:3 },
+      { id:'hag', name:'학개', testament:'OT', chapters:2 },
+      { id:'zec', name:'스가랴', testament:'OT', chapters:14 },
+      { id:'mal', name:'말라기', testament:'OT', chapters:4 },
+      // 신약 (27권)
+      { id:'mat', name:'마태복음', testament:'NT', chapters:28 },
+      { id:'mrk', name:'마가복음', testament:'NT', chapters:16 },
+      { id:'luk', name:'누가복음', testament:'NT', chapters:24 },
+      { id:'jhn', name:'요한복음', testament:'NT', chapters:21 },
+      { id:'act', name:'사도행전', testament:'NT', chapters:28 },
+      { id:'rom', name:'로마서', testament:'NT', chapters:16 },
+      { id:'1co', name:'고린도전서', testament:'NT', chapters:16 },
+      { id:'2co', name:'고린도후서', testament:'NT', chapters:13 },
+      { id:'gal', name:'갈라디아서', testament:'NT', chapters:6 },
+      { id:'eph', name:'에베소서', testament:'NT', chapters:6 },
+      { id:'php', name:'빌립보서', testament:'NT', chapters:4 },
+      { id:'col', name:'골로새서', testament:'NT', chapters:4 },
+      { id:'1th', name:'데살로니가전서', testament:'NT', chapters:5 },
+      { id:'2th', name:'데살로니가후서', testament:'NT', chapters:3 },
+      { id:'1ti', name:'디모데전서', testament:'NT', chapters:6 },
+      { id:'2ti', name:'디모데후서', testament:'NT', chapters:4 },
+      { id:'tit', name:'디도서', testament:'NT', chapters:3 },
+      { id:'phm', name:'빌레몬서', testament:'NT', chapters:1 },
+      { id:'heb', name:'히브리서', testament:'NT', chapters:13 },
+      { id:'jas', name:'야고보서', testament:'NT', chapters:5 },
+      { id:'1pe', name:'베드로전서', testament:'NT', chapters:5 },
+      { id:'2pe', name:'베드로후서', testament:'NT', chapters:3 },
+      { id:'1jn', name:'요한1서', testament:'NT', chapters:5 },
+      { id:'2jn', name:'요한2서', testament:'NT', chapters:1 },
+      { id:'3jn', name:'요한3서', testament:'NT', chapters:1 },
+      { id:'jud', name:'유다서', testament:'NT', chapters:1 },
+      { id:'rev', name:'요한계시록', testament:'NT', chapters:22 }
+    ];
+
+    const HL_CYCLE = [null, 'hl-yellow', 'hl-green', 'hl-pink'];
+
+    let currentTestament = 'OT';
+    let currentBook = null;   // BIBLE_BOOKS 항목
+    let currentChapter = null;
+
+    // ==========================================
+    // 🔐 로그인 상태 확인 (index.html에서 이미 로그인했다면 세션 공유)
+    // ==========================================
+    auth.onAuthStateChanged(user => {
+      const authCheck = document.getElementById('authCheck');
+      const app = document.getElementById('bibleApp');
+      if (user) {
+        authCheck.classList.add('hidden');
+        app.classList.remove('hidden');
+        initApp();
+      } else {
+        authCheck.innerHTML = '로그인이 필요합니다. 대시보드로 이동합니다...';
+        setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+      }
+    });
+
+    function initApp() {
+      renderBookList();
+      bindHeaderEvents();
+      bindAdminModal();
+    }
+
+    // ==========================================
+    // 📖 권 목록 렌더링
+    // ==========================================
+    function renderBookList() {
+      const listEl = document.getElementById('bookList');
+      listEl.innerHTML = '';
+      BIBLE_BOOKS.filter(b => b.testament === currentTestament).forEach(book => {
+        const item = document.createElement('div');
+        item.className = 'book-item' + (currentBook && currentBook.id === book.id ? ' active' : '');
+        item.innerHTML = `<span>${book.name}</span><span class="chapter-count">${book.chapters}장</span>`;
+        item.addEventListener('click', () => selectBook(book));
+        listEl.appendChild(item);
+      });
+    }
+
+    document.querySelectorAll('.testament-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.testament-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentTestament = tab.dataset.testament;
+        currentBook = null;
+        currentChapter = null;
+        renderBookList();
+        document.getElementById('chapterPanel').innerHTML =
+          '<p class="chapter-panel-placeholder">왼쪽에서 책을 선택하세요.</p>';
+        document.getElementById('readingPanel').innerHTML =
+          '<div class="empty-state">왼쪽에서 권과 장을 선택하면<br>본문이 여기에 표시됩니다.</div>';
+      });
+    });
+
+    // ==========================================
+    // 📑 장 선택 패널
+    // ==========================================
+    function selectBook(book) {
+      currentBook = book;
+      currentChapter = null;
+      renderBookList();
+
+      const panel = document.getElementById('chapterPanel');
+      panel.innerHTML = `<p class="chapter-panel-title">${book.name}</p><div class="chapter-grid" id="chapterGrid"></div>`;
+      const grid = document.getElementById('chapterGrid');
+      for (let c = 1; c <= book.chapters; c++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chapter-btn';
+        btn.textContent = c;
+        btn.addEventListener('click', () => selectChapter(book, c));
+        grid.appendChild(btn);
+      }
+
+      document.getElementById('readingPanel').innerHTML =
+        `<div class="empty-state">${book.name}에서 읽고 싶은 장을 선택하세요.</div>`;
+    }
+
+    // ==========================================
+    // 📃 본문(절) 불러오기 및 렌더링
+    // ==========================================
+    async function selectChapter(book, chapter) {
+      currentChapter = chapter;
+      document.querySelectorAll('.chapter-btn').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.textContent, 10) === chapter);
+      });
+
+      const readingPanel = document.getElementById('readingPanel');
+      readingPanel.innerHTML = `
+        <div class="reading-panel-header">
+          <h2>${book.name} ${chapter}장</h2>
+          <span class="reading-panel-hint">구절을 클릭하면 형광펜이 켜집니다</span>
+        </div>
+        <div id="verseList"></div>
+      `;
+      const verseList = document.getElementById('verseList');
+      verseList.innerHTML = '<div class="empty-state">불러오는 중...</div>';
+
+      try {
+        const snap = await db.collection('bible_verses')
+          .where('book', '==', book.id)
+          .where('chapter', '==', chapter)
+          .orderBy('verse')
+          .get();
+
+        if (snap.empty) {
+          verseList.innerHTML = `
+            <div class="empty-state">
+              아직 입력된 본문이 없습니다.<br>
+              <button type="button" class="header-btn" id="quickAdminBtn">✏️ 이 장 본문 입력하기</button>
+            </div>`;
+          document.getElementById('quickAdminBtn').addEventListener('click', () => openAdminModal(book, chapter));
+          return;
+        }
+
+        verseList.innerHTML = '';
+        snap.forEach(doc => {
+          const v = doc.data();
+          const row = document.createElement('div');
+          row.className = 'verse-row' + (v.highlight ? ' ' + v.highlight : '');
+          row.dataset.docId = doc.id;
+          row.innerHTML = `<span class="verse-num">${v.verse}</span><span class="verse-text">${escapeHtml(v.text)}</span>`;
+          row.addEventListener('click', () => toggleHighlight(doc.id, row));
+          verseList.appendChild(row);
+        });
+      } catch (err) {
+        console.error('본문 로드 오류:', err);
+        verseList.innerHTML = `<div class="empty-state">본문을 불러오지 못했습니다.<br><span style="color:#f87171;font-size:0.8rem;">${err.message}</span></div>`;
+      }
+    }
+
+    async function toggleHighlight(docId, rowEl) {
+      const currentClass = HL_CYCLE.find(c => c && rowEl.classList.contains(c)) || null;
+      const currentIdx = HL_CYCLE.indexOf(currentClass);
+      const nextClass = HL_CYCLE[(currentIdx + 1) % HL_CYCLE.length];
+
+      HL_CYCLE.forEach(c => { if (c) rowEl.classList.remove(c); });
+      if (nextClass) rowEl.classList.add(nextClass);
+
+      try {
+        await db.collection('bible_verses').doc(docId).update({ highlight: nextClass });
+      } catch (err) {
+        console.error('하이라이트 저장 오류:', err);
+      }
+    }
+
+    // ==========================================
+    // 🔍 검색
+    // ==========================================
+    function bindHeaderEvents() {
+      const searchPanel = document.getElementById('searchPanel');
+      document.getElementById('btn-search-toggle').addEventListener('click', () => {
+        searchPanel.classList.toggle('hidden');
+        if (!searchPanel.classList.contains('hidden')) {
+          document.getElementById('searchInput').focus();
+        }
+      });
+
+      document.getElementById('searchBtn').addEventListener('click', runSearch);
+      document.getElementById('searchInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') runSearch();
+      });
+    }
+
+    async function runSearch() {
+      const query = document.getElementById('searchInput').value.trim();
+      const resultsEl = document.getElementById('searchResults');
+      if (!query) { resultsEl.innerHTML = ''; return; }
+
+      resultsEl.innerHTML = '<div class="search-empty">검색 중...</div>';
+      try {
+        // 소규모 개인/부서용 앱 기준: 전체 컬렉션을 불러와 클라이언트에서 필터링합니다.
+        const snap = await db.collection('bible_verses').get();
+        const matches = [];
+        snap.forEach(doc => {
+          const v = doc.data();
+          if (v.text && v.text.includes(query)) matches.push({ id: doc.id, ...v });
+        });
+
+        if (matches.length === 0) {
+          resultsEl.innerHTML = '<div class="search-empty">검색 결과가 없습니다. (본문이 아직 입력되지 않았을 수 있어요)</div>';
+          return;
+        }
+
+        resultsEl.innerHTML = '';
+        matches.slice(0, 100).forEach(m => {
+          const bookMeta = BIBLE_BOOKS.find(b => b.id === m.book);
+          const item = document.createElement('div');
+          item.className = 'search-result-item';
+          item.innerHTML = `<span class="search-result-loc">${bookMeta ? bookMeta.name : m.book} ${m.chapter}:${m.verse}</span>${escapeHtml(m.text)}`;
+          item.addEventListener('click', () => {
+            if (!bookMeta) return;
+            currentTestament = bookMeta.testament;
+            document.querySelectorAll('.testament-tab').forEach(t =>
+              t.classList.toggle('active', t.dataset.testament === currentTestament));
+            renderBookList();
+            selectBook(bookMeta);
+            selectChapter(bookMeta, m.chapter).then(() => {
+              const row = document.querySelector(`.verse-row[data-doc-id="${m.id}"]`);
+              if (row) {
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                row.classList.add('flash');
+                setTimeout(() => row.classList.remove('flash'), 1500);
+              }
+            });
+          });
+          resultsEl.appendChild(item);
+        });
+      } catch (err) {
+        console.error('검색 오류:', err);
+        resultsEl.innerHTML = `<div class="search-empty">검색 중 오류가 발생했습니다: ${err.message}</div>`;
+      }
+    }
+
+    // ==========================================
+    // ✏️ 본문 입력 모달
+    // ==========================================
+    function bindAdminModal() {
+      const modal = document.getElementById('adminModal');
+      const bookSelect = document.getElementById('adminBookSelect');
+      const chapterSelect = document.getElementById('adminChapterSelect');
+
+      // 권 옵션 (구약/신약 그룹)
+      const otGroup = document.createElement('optgroup');
+      otGroup.label = '구약';
+      const ntGroup = document.createElement('optgroup');
+      ntGroup.label = '신약';
+      BIBLE_BOOKS.forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = b.id;
+        opt.textContent = b.name;
+        (b.testament === 'OT' ? otGroup : ntGroup).appendChild(opt);
+      });
+      bookSelect.appendChild(otGroup);
+      bookSelect.appendChild(ntGroup);
+
+      function refreshChapterOptions() {
+        const book = BIBLE_BOOKS.find(b => b.id === bookSelect.value);
+        chapterSelect.innerHTML = '';
+        for (let c = 1; c <= book.chapters; c++) {
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = c + '장';
+          chapterSelect.appendChild(opt);
+        }
+      }
+      bookSelect.addEventListener('change', refreshChapterOptions);
+      refreshChapterOptions();
+
+      document.getElementById('btn-admin-toggle').addEventListener('click', () => openAdminModal());
+      document.getElementById('adminCancelBtn').addEventListener('click', closeAdminModal);
+      document.getElementById('adminSaveBtn').addEventListener('click', saveAdminText);
+    }
+
+    function openAdminModal(book, chapter) {
+      const modal = document.getElementById('adminModal');
+      const bookSelect = document.getElementById('adminBookSelect');
+      const chapterSelect = document.getElementById('adminChapterSelect');
+      document.getElementById('adminStatus').textContent = '';
+      document.getElementById('adminTextarea').value = '';
+
+      if (book) {
+        bookSelect.value = book.id;
+        bookSelect.dispatchEvent(new Event('change'));
+      }
+      if (chapter) {
+        setTimeout(() => { chapterSelect.value = chapter; }, 0);
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeAdminModal() {
+      document.getElementById('adminModal').classList.add('hidden');
+    }
+
+    async function saveAdminText() {
+      const bookId = document.getElementById('adminBookSelect').value;
+      const chapter = parseInt(document.getElementById('adminChapterSelect').value, 10);
+      const raw = document.getElementById('adminTextarea').value;
+      const statusEl = document.getElementById('adminStatus');
+      const book = BIBLE_BOOKS.find(b => b.id === bookId);
+
+      const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+      const parsed = [];
+      lines.forEach(line => {
+        const m = line.match(/^(\d+)\s+(.+)$/);
+        if (m) parsed.push({ verse: parseInt(m[1], 10), text: m[2].trim() });
+      });
+
+      if (parsed.length === 0) {
+        statusEl.className = 'modal-status err';
+        statusEl.textContent = '형식에 맞는 줄을 찾지 못했습니다. "절번호 본문" 형태로 입력해주세요.';
+        return;
+      }
+
+      statusEl.className = 'modal-status';
+      statusEl.textContent = `저장 중... (${parsed.length}개 절)`;
+
+      try {
+        const batch = db.batch();
+        parsed.forEach(p => {
+          const docId = `${bookId}_${chapter}_${p.verse}`;
+          const ref = db.collection('bible_verses').doc(docId);
+          batch.set(ref, {
+            book: bookId,
+            bookName: book.name,
+            testament: book.testament,
+            chapter: chapter,
+            verse: p.verse,
+            text: p.text,
+            highlight: null,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        });
+        await batch.commit();
+
+        statusEl.className = 'modal-status ok';
+        statusEl.textContent = `${parsed.length}개 절이 저장되었습니다.`;
+
+        // 현재 보고 있는 장이면 화면 갱신
+        if (currentBook && currentBook.id === bookId && currentChapter === chapter) {
+          selectChapter(currentBook, currentChapter);
+        }
+        setTimeout(closeAdminModal, 900);
+      } catch (err) {
+        console.error('본문 저장 오류:', err);
+        statusEl.className = 'modal-status err';
+        statusEl.textContent = '저장 중 오류가 발생했습니다: ' + err.message;
+      }
+    }
+
+    // ==========================================
+    // 유틸
+    // ==========================================
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
