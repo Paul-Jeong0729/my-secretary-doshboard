@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📖 말씀 - My Secretary DashBoard</title>
+<link rel="stylesheet" href="css/main.css">
+
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg-color, #0a0f1a);
+    color: var(--text-color, #f8fafc);
+    font-family: inherit;
+  }
+
+  #authCheck {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    color: var(--sub-text, #94a3b8);
+    font-size: 0.95rem;
+  }
+  .hidden { display: none !important; }
+
+  /* ---------- 헤더 ---------- */
+  .word-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color, #334155);
+    background: var(--card-bg, #1e293b);
+  }
+  .back-btn {
+    color: var(--sub-text, #94a3b8);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color, #334155);
+    transition: 0.2s;
+    white-space: nowrap;
+  }
+  .back-btn:hover { color: var(--text-color, #f8fafc); border-color: var(--accent-color, #f59e0b); }
+
+  .word-title {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--accent-color, #f59e0b);
+    flex: 1;
+    text-align: center;
+  }
+
+  /* ---------- 컨텐츠 영역 ---------- */
+  .word-container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 20px 20px 40px;
+  }
+
+  .toolbar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: rgba(10,15,26,0.6);
+    border: 1px solid var(--border-color, #334155);
+    border-radius: 8px;
+    overflow: hidden;
+    flex: 1;
+    min-width: 160px;
+    max-width: 280px;
+  }
+  .search-box input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-color, #f8fafc);
+    padding: 9px 10px;
+    font-size: 0.87rem;
+    outline: none;
+  }
+  .search-box button {
+    background: transparent;
+    border: none;
+    border-left: 1px solid var(--border-color, #334155);
+    color: var(--sub-text, #94a3b8);
+    padding: 0 12px;
+    cursor: pointer;
+    font-size: 0.95rem;
+  }
+  .search-box button:hover { color: var(--accent-color, #f59e0b); }
+
+  .btn-primary {
+    background: transparent;
+    color: var(--accent-color, #f59e0b);
+    border: 1px solid var(--accent-color, #f59e0b);
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 0.87rem;
+    cursor: pointer;
+    transition: 0.2s;
+    white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-color, #f59e0b); color: #000; }
+
+  /* ---------- 목록 ---------- */
+  .word-list {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--border-color, #334155);
+  }
+  .word-list-item {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 13px 6px;
+    border-bottom: 1px solid var(--border-color, #334155);
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .word-list-item:hover { background: rgba(148, 163, 184, 0.08); }
+  .word-list-item .item-title {
+    flex: 1;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-color, #f8fafc);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .word-list-item:hover .item-title { color: var(--accent-color, #f59e0b); }
+  .word-list-item .item-date {
+    font-size: 0.75rem;
+    color: var(--sub-text, #94a3b8);
+    flex-shrink: 0;
+  }
+  .list-empty {
+    padding: 50px 10px;
+    text-align: center;
+    color: var(--sub-text, #94a3b8);
+    font-size: 0.9rem;
+  }
+
+  /* ---------- 페이지네이션 ---------- */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .page-btn {
+    min-width: 30px;
+    height: 30px;
+    padding: 0 6px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color, #334155);
+    background: transparent;
+    color: var(--sub-text, #94a3b8);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .page-btn:hover { border-color: var(--accent-color, #f59e0b); color: var(--text-color, #f8fafc); }
+  .page-btn.active {
+    background: var(--accent-color, #f59e0b);
+    border-color: var(--accent-color, #f59e0b);
+    color: #000;
+  }
+
+  /* ---------- 모달 공통 ---------- */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(5,10,20,0.85);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 16px;
+  }
+  .modal-card {
+    width: 560px;
+    max-width: 100%;
+    max-height: 88vh;
+    overflow-y: auto;
+    background: var(--card-bg, #1e293b);
+    border: 1.5px solid var(--accent-color, #f59e0b);
+    border-radius: 14px;
+    padding: 22px 22px 18px;
+  }
+
+  /* 상세보기 모달 */
+  #viewModal .view-date {
+    font-size: 0.78rem;
+    color: var(--sub-text, #94a3b8);
+    margin: 0 0 4px;
+  }
+  #viewModal .view-title {
+    margin: 0 0 14px;
+    font-size: 1.2rem;
+    color: var(--accent-color, #f59e0b);
+    font-weight: 800;
+    line-height: 1.4;
+    word-break: break-word;
+  }
+  #viewModal .view-content {
+    font-size: 0.95rem;
+    line-height: 1.85;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--text-color, #f8fafc);
+    min-height: 120px;
+    padding-bottom: 10px;
+  }
+  .view-footer {
+    display: flex;
+    gap: 8px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-color, #334155);
+  }
+  .view-footer button {
+    flex: 1;
+    padding: 10px 0;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.88rem;
+    cursor: pointer;
+    border: 1px solid var(--border-color, #334155);
+    background: rgba(255,255,255,0.06);
+    color: var(--sub-text, #94a3b8);
+    transition: 0.2s;
+  }
+  .view-footer button:hover { color: var(--text-color, #f8fafc); }
+  #btnEdit:hover { border-color: var(--accent-color, #f59e0b); color: var(--accent-color, #f59e0b); }
+  #btnDelete:hover { border-color: #f87171; color: #f87171; }
+  #btnCloseView {
+    flex: 0 0 auto;
+    width: 90px;
+    background: var(--accent-color, #f59e0b) !important;
+    border-color: var(--accent-color, #f59e0b) !important;
+    color: #000 !important;
+  }
+
+  /* 입력/수정 모달 */
+  #formModal h2 {
+    margin: 0 0 16px;
+    color: var(--accent-color, #f59e0b);
+    font-size: 1.1rem;
+    text-align: center;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .form-group label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--sub-text, #94a3b8);
+  }
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    background: rgba(10,15,26,0.6);
+    border: 1px solid var(--border-color, #334155);
+    border-radius: 8px;
+    color: var(--text-color, #f8fafc);
+    font-size: 0.9rem;
+    padding: 10px 12px;
+    outline: none;
+    font-family: inherit;
+  }
+  .form-group input:focus,
+  .form-group textarea:focus { border-color: var(--accent-color, #f59e0b); }
+  .form-group textarea {
+    min-height: 260px;
+    line-height: 1.7;
+    resize: vertical;
+  }
+  .form-status { font-size: 0.8rem; margin: 4px 0 0; min-height: 18px; }
+  .form-status.err { color: #f87171; }
+  .form-footer { display: flex; gap: 8px; margin-top: 12px; }
+  .form-footer button {
+    flex: 1;
+    padding: 11px 0;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border: none;
+  }
+  #btnSave { background: var(--accent-color, #f59e0b); color: #000; }
+  #btnCancel {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border-color, #334155) !important;
+    color: var(--sub-text, #94a3b8);
+  }
+</style>
+</head>
+<body>
+
+  <div id="authCheck">로그인 확인 중...</div>
+
+  <div id="wordApp" class="hidden">
+    <header class="word-header">
+      <a href="index.html" class="back-btn">← 대시보드</a>
+      <h1 class="word-title">📖 말씀</h1>
+      <span style="width:70px"></span>
+    </header>
+
+    <div class="word-container">
+      <div class="toolbar">
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="제목으로 검색">
+          <button type="button" id="searchBtn">🔍</button>
+        </div>
+        <button type="button" class="btn-primary" id="btnNewPost">＋ 입력</button>
+      </div>
+
+      <div class="word-list" id="wordList">
+        <div class="list-empty">불러오는 중...</div>
+      </div>
+
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+
+  <!-- 상세보기 모달 -->
+  <div id="viewModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <p class="view-date" id="viewDate"></p>
+      <h2 class="view-title" id="viewTitle"></h2>
+      <div class="view-content" id="viewContent"></div>
+      <div class="view-footer">
+        <button type="button" id="btnEdit">✏️ 수정</button>
+        <button type="button" id="btnDelete">🗑️ 삭제</button>
+        <button type="button" id="btnCloseView">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 입력/수정 모달 -->
+  <div id="formModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h2 id="formModalTitle">✏️ 말씀 입력</h2>
+      <div class="form-group">
+        <label for="formTitleInput">제목</label>
+        <input type="text" id="formTitleInput" placeholder="제목을 입력하세요">
+      </div>
+      <div class="form-group">
+        <label for="formContentInput">내용</label>
+        <textarea id="formContentInput" placeholder="내용을 입력하세요"></textarea>
+      </div>
+      <p class="form-status" id="formStatus"></p>
+      <div class="form-footer">
+        <button type="button" id="btnSave">저장</button>
+        <button type="button" id="btnCancel">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBVXo5NYSyumJxYFFE2hrIaTEJiHIyq8P0",
+      authDomain: "my-secretary-1df10.firebaseapp.com",
+      projectId: "my-secretary-1df10",
+      storageBucket: "my-secretary-1df10.firebasestorage.app",
+      messagingSenderId: "165274759452",
+      appId: "1:165274759452:web:bbfa7de28a08f8e11b4ad9"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const PAGE_SIZE = 10;
+    let allPosts = [];      // Firestore에서 불러온 전체 목록 (검색 전)
+    let filteredPosts = []; // 검색어 적용된 목록
+    let currentPage = 1;
+    let editingId = null;   // 수정 중인 문서 ID (null이면 신규 입력)
+    let viewingPost = null; // 현재 상세보기 중인 게시글
+
+    // ==========================================
+    // 🔐 로그인 상태 확인
+    // ==========================================
+    auth.onAuthStateChanged(user => {
+      const authCheck = document.getElementById('authCheck');
+      const app = document.getElementById('wordApp');
+      if (user) {
+        authCheck.classList.add('hidden');
+        app.classList.remove('hidden');
+        loadPosts();
+      } else {
+        authCheck.innerHTML = '로그인이 필요합니다. 대시보드로 이동합니다...';
+        setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+      }
+    });
+
+    // ==========================================
+    // 📃 목록 불러오기
+    // ==========================================
+    async function loadPosts() {
+      const listEl = document.getElementById('wordList');
+      listEl.innerHTML = '<div class="list-empty">불러오는 중...</div>';
+      try {
+        const snap = await db.collection('word_posts').orderBy('createdAt', 'desc').get();
+        allPosts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        applySearch();
+      } catch (err) {
+        console.error('목록 로드 오류:', err);
+        listEl.innerHTML = `<div class="list-empty">목록을 불러오지 못했습니다.<br><span style="color:#f87171;font-size:0.8rem;">${err.message}</span></div>`;
+      }
+    }
+
+    function applySearch() {
+      const query = document.getElementById('searchInput').value.trim();
+      filteredPosts = query
+        ? allPosts.filter(p => p.title && p.title.includes(query))
+        : allPosts.slice();
+      currentPage = 1;
+      renderList();
+    }
+
+    // ==========================================
+    // 📋 목록 + 페이지네이션 렌더링
+    // ==========================================
+    function renderList() {
+      const listEl = document.getElementById('wordList');
+      const pagerEl = document.getElementById('pagination');
+
+      if (filteredPosts.length === 0) {
+        listEl.innerHTML = '<div class="list-empty">등록된 말씀이 없습니다.</div>';
+        pagerEl.innerHTML = '';
+        return;
+      }
+
+      const totalPages = Math.max(1, Math.ceil(filteredPosts.length / PAGE_SIZE));
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      const start = (currentPage - 1) * PAGE_SIZE;
+      const pageItems = filteredPosts.slice(start, start + PAGE_SIZE);
+
+      listEl.innerHTML = '';
+      pageItems.forEach(post => {
+        const row = document.createElement('div');
+        row.className = 'word-list-item';
+        row.innerHTML = `
+          <span class="item-title">${escapeHtml(post.title || '(제목 없음)')}</span>
+          <span class="item-date">${formatDate(post.createdAt)}</span>
+        `;
+        row.addEventListener('click', () => openViewModal(post));
+        listEl.appendChild(row);
+      });
+
+      // ---- 페이지 번호 (목록이 늘어나면 자동으로 개수 증가) ----
+      pagerEl.innerHTML = '';
+      if (totalPages > 1) {
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'page-btn';
+        prevBtn.textContent = '‹';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.addEventListener('click', () => { currentPage--; renderList(); });
+        pagerEl.appendChild(prevBtn);
+
+        for (let p = 1; p <= totalPages; p++) {
+          const btn = document.createElement('button');
+          btn.className = 'page-btn' + (p === currentPage ? ' active' : '');
+          btn.textContent = p;
+          btn.addEventListener('click', () => { currentPage = p; renderList(); });
+          pagerEl.appendChild(btn);
+        }
+
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'page-btn';
+        nextBtn.textContent = '›';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.addEventListener('click', () => { currentPage++; renderList(); });
+        pagerEl.appendChild(nextBtn);
+      }
+    }
+
+    document.getElementById('searchBtn').addEventListener('click', applySearch);
+    document.getElementById('searchInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') applySearch();
+    });
+
+    // ==========================================
+    // 👁️ 상세보기 모달
+    // ==========================================
+    function openViewModal(post) {
+      viewingPost = post;
+      document.getElementById('viewDate').textContent = formatDate(post.createdAt, true);
+      document.getElementById('viewTitle').textContent = post.title || '(제목 없음)';
+      document.getElementById('viewContent').textContent = post.content || '';
+      document.getElementById('viewModal').classList.remove('hidden');
+    }
+    function closeViewModal() {
+      document.getElementById('viewModal').classList.add('hidden');
+      viewingPost = null;
+    }
+    document.getElementById('btnCloseView').addEventListener('click', closeViewModal);
+
+    document.getElementById('btnDelete').addEventListener('click', async () => {
+      if (!viewingPost) return;
+      if (!confirm(`"${viewingPost.title || '(제목 없음)'}" 항목을 삭제하시겠습니까?`)) return;
+      try {
+        await db.collection('word_posts').doc(viewingPost.id).delete();
+        closeViewModal();
+        loadPosts();
+      } catch (err) {
+        console.error('삭제 오류:', err);
+        alert('삭제 중 오류가 발생했습니다: ' + err.message);
+      }
+    });
+
+    document.getElementById('btnEdit').addEventListener('click', () => {
+      if (!viewingPost) return;
+      closeViewModal();
+      openFormModal(viewingPost);
+    });
+
+    // ==========================================
+    // ✏️ 입력 / 수정 모달
+    // ==========================================
+    function openFormModal(post) {
+      editingId = post ? post.id : null;
+      document.getElementById('formModalTitle').textContent = post ? '✏️ 말씀 수정' : '✏️ 말씀 입력';
+      document.getElementById('formTitleInput').value = post ? (post.title || '') : '';
+      document.getElementById('formContentInput').value = post ? (post.content || '') : '';
+      document.getElementById('formStatus').textContent = '';
+      document.getElementById('formModal').classList.remove('hidden');
+    }
+    function closeFormModal() {
+      document.getElementById('formModal').classList.add('hidden');
+      editingId = null;
+    }
+
+    document.getElementById('btnNewPost').addEventListener('click', () => openFormModal(null));
+    document.getElementById('btnCancel').addEventListener('click', closeFormModal);
+
+    document.getElementById('btnSave').addEventListener('click', async () => {
+      const title = document.getElementById('formTitleInput').value.trim();
+      const content = document.getElementById('formContentInput').value.trim();
+      const statusEl = document.getElementById('formStatus');
+
+      if (!title) {
+        statusEl.className = 'form-status err';
+        statusEl.textContent = '제목을 입력해주세요.';
+        return;
+      }
+
+      statusEl.className = 'form-status';
+      statusEl.textContent = '저장 중...';
+
+      try {
+        if (editingId) {
+          await db.collection('word_posts').doc(editingId).update({
+            title, content,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        } else {
+          await db.collection('word_posts').add({
+            title, content,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+        closeFormModal();
+        loadPosts();
+      } catch (err) {
+        console.error('저장 오류:', err);
+        statusEl.className = 'form-status err';
+        statusEl.textContent = '저장 중 오류가 발생했습니다: ' + err.message;
+      }
+    });
+
+    // ==========================================
+    // 유틸
+    // ==========================================
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+    function formatDate(ts, withTime) {
+      if (!ts || !ts.toDate) return '';
+      const d = ts.toDate();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      if (!withTime) return `${y}.${m}.${day}`;
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return `${y}.${m}.${day} ${hh}:${mm}`;
+    }
+  </script>
+</body>
+</html>
